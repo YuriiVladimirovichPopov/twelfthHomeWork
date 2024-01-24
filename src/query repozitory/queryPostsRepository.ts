@@ -1,20 +1,20 @@
 import "reflect-metadata";
-import { CommentsMongoDbType, PostsMongoDbType } from "../types";
+import { CommentsMongoDbType, PostsMongoDb } from "../types";
 import { PaginatedType, Paginated } from "../routers/helpers/pagination";
 import { ObjectId, WithId } from "mongodb";
 import { PostsViewModel } from "../models/posts/postsViewModel";
-import mongoose from "mongoose";
 import { CommentModel } from "../domain/schemas/comments.schema";
 import { PostModel } from "../domain/schemas/posts.schema";
 import { injectable } from "inversify";
+import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 
-const filter: mongoose.FilterQuery<PostsMongoDbType> = {};
+//const filter: mongoose.FilterQuery<PostsMongoDbType> = {};
 
 
 @injectable()
 export class QueryPostRepository {
-  _postMapper(post: PostsMongoDbType): PostsViewModel {
-    return {
+  _postMapper(post: PostsMongoDb): PostsViewModel { 
+    return {    //TODO: надо поменять как в комментах и будет счастье по идее
       id: post._id.toString(),
       title: post.title,
       shortDescription: post.shortDescription,
@@ -22,6 +22,12 @@ export class QueryPostRepository {
       blogId: post.blogId,
       blogName: post.blogName,
       createdAt: post.createdAt,
+      extendedLikesInfo: {   
+        likesCount: post.extendedLikesInfo.likesCount,
+        dislikesCount: post.extendedLikesInfo.dislikesCount,
+        myStatus: post.extendedLikesInfo.myStatus,
+        newestLikes: post.extendedLikesInfo.newestLikes,
+      }
     };
   }
 
@@ -44,7 +50,7 @@ export class QueryPostRepository {
     filter: {},
     pagination: PaginatedType,
   ): Promise<Paginated<PostsViewModel>> {
-    const result: WithId<PostsMongoDbType>[] = await PostModel.find(filter)
+    const result: WithId<PostsMongoDb>[] = await PostModel.find(filter)
       .sort({ [pagination.sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
@@ -58,14 +64,22 @@ export class QueryPostRepository {
       page: pagination.pageNumber,
       pageSize: pagination.pageSize,
       totalCount: totalCount,
-      items: result.map((res) => this._postMapper(res)),
+      items: result.map((res) => this._postMapper(res)),   // TODO: may be переделать этот метод подобно комментам?
     };
   }
 
-  async findPostById(id: string): Promise<PostsViewModel | null> {
+  async findPostById(id: string, userId: string): Promise<PostsViewModel | null> { // TODO надо ли сюда добавлять юзера?
     //console.log("Searching for post with ID:", id);
     if (!ObjectId.isValid(id)) {
       return null;
+    }
+
+    let myStatus:ReactionStatusEnum = ReactionStatusEnum.None;
+
+    if(userId){
+      const reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id})  //Ксения помогла. 
+                                                                            //Таким образом надо сделать на все гет запросы, 
+      myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      //где есть комменты
     }
 
     const _id = new ObjectId(id);
@@ -73,10 +87,10 @@ export class QueryPostRepository {
     if (!findPost) {
       return null;
     }
-    return this._postMapper(findPost);
+    return this._postMapper(findPost);    
   }
 
-  async findAllCommentsforPostId(
+  async findAllCommentsforPostId(    //TODO: сюда тоже юзерАйди засунуть?
     pagination: PaginatedType,
   ): Promise<Paginated<CommentsMongoDbType>> {
     const filter = {

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { LikeStatusType } from "../../models/reaction/reactionInfoViewModel";
+import { ExtendedReactionInfoViewModelForPost, LikeStatusType, NewestLikeDetailsViewModel } from "../../models/reaction/reactionInfoViewModel";
+import { NewestLikeDetailsForPostSchema } from "./posts.schema";
 
 export const userLoginValid = {
   minLength: 3,
@@ -25,12 +26,10 @@ export const ReactionSchema = new mongoose.Schema({
   myStatus: {
     type: String,
     required: true,
-    enum: Object.values(ReactionStatusEnum)   //TODO: добавил default
+    enum: Object.values(ReactionStatusEnum)  
   },
 }, { _id: true, versionKey: false });   
-
 export const ReactionModel = mongoose.model("reaction", ReactionSchema);
-
 
 
 export const LikesInfoSchema = new mongoose.Schema(
@@ -42,10 +41,12 @@ export const LikesInfoSchema = new mongoose.Schema(
   export const LikesInfoModel = mongoose.model("LikesInfo",LikesInfoSchema)
 
 
-const LikeStatusSchema = new mongoose.Schema<LikeStatusType>({
-  myStatus: {type: String, required: true}, 
-  userId: {type:String, required: true},
-  createdAt: {type: String, required: true}
-})
-export const LikeStatusModel = mongoose.model("LikeStatus", LikeStatusSchema)
+  export const ExtendedReactionForPostSchema = new mongoose.Schema<ExtendedReactionInfoViewModelForPost>({  
+    likesCount: { type: Number, required: true },
+    dislikesCount: { type: Number, required: true },
+    myStatus: {ReactionStatusEnum},
+    newestLikes: {type: NewestLikeDetailsForPostSchema, required: true},
+  });
+  export const ExtendedReactionForPostModel = mongoose.model('ExtendedReactionForPostModel', ExtendedReactionForPostSchema)
 
+  

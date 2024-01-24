@@ -9,8 +9,7 @@ import { injectable } from "inversify";
 
 @injectable()
 export class CommentsRepository {
-  //constructor(private readonly LikesInfoModel: Model<reactionInfoViewModel>) {}
-
+  
   async createComment(
     parentId: string,
     postId: string,
@@ -27,13 +26,11 @@ export class CommentsRepository {
       likesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        // TODO may be add myStatus: 'None'???
       },
     };
 
     await CommentModel.create({ ...createCommentForPost });
 
-    
     console.log("commentObject    ", createCommentForPost)
     return {
       id: createCommentForPost._id.toString(),

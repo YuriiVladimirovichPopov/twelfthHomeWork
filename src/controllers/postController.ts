@@ -3,7 +3,7 @@ import { Response, Request } from "express";
 import { PostsService } from "../application/post-service";
 import { CommentViewModel } from "../models/comments/commentViewModel";
 import { getByIdParam } from "../models/getById";
-import { PostsInputModel } from "../models/posts/postsInputModel";
+import { PostsInputModel } from '../models/posts/postsInputModel';
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { CommentsQueryRepository } from "../query repozitory/queryCommentsRepository";
@@ -40,6 +40,7 @@ export class PostController {
     
     const foundedPostId = await this.queryPostRepository.findPostById(
       req.params.postId,
+      req.body.userId
     );
     if (!foundedPostId) {
       return res.sendStatus(httpStatuses.NOT_FOUND_404);
@@ -50,16 +51,18 @@ export class PostController {
     );
     const allCommentsForPostId: Paginated<CommentViewModel> =
       await this.commentsQueryRepository.getAllCommentsForPost(
-        req.params.postId,
+        req.params.postId,    
         pagination,
         user?._id.toString(),
       );
+//TODO: добавляем комменты с реакциями типа reactionQueryRepository.findLikesForManyComments 
+  
     return res.status(httpStatuses.OK_200).send(allCommentsForPostId);
   }
 
   async createCommentsByPostId(req: Request, res: Response) {
     const postWithId: PostsViewModel | null =
-      await this.queryPostRepository.findPostById(req.params.postId);
+      await this.queryPostRepository.findPostById(req.params.postId, req.body.userId);
     if (!postWithId) {
       return res
         .status(httpStatuses.NOT_FOUND_404)
@@ -95,24 +98,21 @@ export class PostController {
     }
     res.status(httpStatuses.OK_200).send(allPosts);
   }
+
   async createPostByBlogId(
-    req: RequestWithBody<PostsInputModel>,
-    res: Response<PostsViewModel>,
+    req: Request, //TODO: переопределить реквест
+    res: Response<PostsViewModel | null>,
   ) {
     const findBlogById = await this.queryBlogsRepository.findBlogById(
       req.body.blogId,
     );
+    const user = req.body.userId //TODO: может добавить проверку? что юзер может быть null?
 
     if (findBlogById) {
-      const { title, shortDescription, content, blogId } = req.body;
-      const newPost: PostsViewModel | null = await this.postsService.createPost(
-        {
-          title,
-          shortDescription,
-          content,
-          blogId,
-        },
-      );
+      const data: PostsInputModel = req.body;
+      
+      const newPost: PostsViewModel | null = 
+      await this.postsService.createPost(data, user)          // TODO: исходящую модель поменять? по сваггеру?
 
       if (!newPost) {
         return res.sendStatus(httpStatuses.BAD_REQUEST_400);
@@ -120,8 +120,10 @@ export class PostController {
       return res.status(httpStatuses.CREATED_201).send(newPost);
     }
   }
-  async getPostById(req: RequestWithParams<getByIdParam>, res: Response) {
-    const foundPost = await this.postsService.findPostById(req.params.id);
+  async getPostById(req: Request, res: Response) {
+    const foundPost = await this.postsService.findPostById(
+      req.params.id,
+      req.params.userId);
     if (!foundPost) {
       res.sendStatus(httpStatuses.NOT_FOUND_404);
     } else {
@@ -143,6 +145,37 @@ export class PostController {
       res.sendStatus(httpStatuses.NO_CONTENT_204);
     }
   }
+
+  async updateLikesDislikesForPost(req: Request, res: Response) {
+    try {
+      console.log('updateLikesDislikes   ', req.body, );  
+      console.log('userId   ', req.body.userId);
+       
+      const postId = req.params.postId;
+      const userId = req.body.userId!;
+      const { likeStatus } = req.body;
+
+      const updatedPost = await this.postsService.updateLikesDislikesForPost(
+        postId,
+        userId,
+        likeStatus, // TODO: сюда надо еще добавить последние три лайка
+      );
+
+      if (!updatedPost) {
+        return res
+          .status(httpStatuses.NOT_FOUND_404)
+          .send({ message: "Post not found" });
+      } else {
+        return res.sendStatus(httpStatuses.NO_CONTENT_204);
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении реакций:", error)
+      return res
+        .status(httpStatuses.INTERNAL_SERVER_ERROR_500)
+        .send({ message: "Сервер на кофе-брейке!" });
+    }
+  }
+
   async deletePostById(req: RequestWithParams<getByIdParam>, res: Response) {
     const foundPost = await this.postsService.deletePost(req.params.id);
     if (!foundPost) {

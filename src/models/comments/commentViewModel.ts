@@ -3,7 +3,7 @@ import { injectable } from "inversify";
 import { ReactionInfoViewModel } from "../reaction/reactionInfoViewModel";
 
 
-export type CommentViewModel = {
+/* export type CommentViewModel = {
   id: string;
   content: string;
   commentatorInfo: {
@@ -13,19 +13,19 @@ export type CommentViewModel = {
   createdAt: string;
   likesInfo: ReactionInfoViewModel;
 };
-
+ */
 
 
 @injectable()
-export class CommentViewModel1 {
-  id: string;
-  content: string;
-  commentatorInfo: {
+export class CommentViewModel {
+  public id: string;   
+  public content: string;
+  public commentatorInfo: {
     userId: string;
     userLogin: string;
   };
-  createdAt: string;
-  likesInfo: ReactionInfoViewModel; 
+  public createdAt: string;
+  public likesInfo: ReactionInfoViewModel; 
 
   constructor(
     id: string,

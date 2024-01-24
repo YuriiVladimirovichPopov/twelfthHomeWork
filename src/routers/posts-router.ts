@@ -10,10 +10,15 @@ import {
 import { authMiddleware } from "../middlewares/validations/auth.validation";
 import { createPostValidationForComment } from "../middlewares/validations/comments.validation";
 import { postController } from "../composition-root";
-import { userValidationMiddleware } from "../middlewares/validations/user.id.validation";
 import { guestAccessMiddleware } from "../middlewares/validations/guests.validation";
 
 export const postsRouter = Router({});
+
+postsRouter.put(    //TODO: доделать!
+  "/:postId/like-status",
+  authMiddleware,
+  postController.updateLikesDislikesForPost.bind(postController)
+)
 
 postsRouter.get(
   "/:postId/comments",
@@ -24,7 +29,6 @@ postsRouter.get(
 postsRouter.post(
   "/:postId/comments",
   authMiddleware,
-  //userValidationMiddleware,
   createPostValidationForComment,
   postController.createCommentsByPostId.bind(postController),
 );

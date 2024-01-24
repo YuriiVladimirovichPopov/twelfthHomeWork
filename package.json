@@ -1,7 +1,7 @@
 {
-  "name": "project_back_end_11_week",
+  "name": "project_back_end_12_week",
   "version": "1.0.0",
-  "repository": "https://github.com/YuriiVladimirovichPopov/eleventhHomeWork.git",
+  "repository": "https://github.com/YuriiVladimirovichPopov/twelfthHomeWork.git",
   "author": "YuriiVladimirovichPopov <papanchik87@yahoo.com>",
   "main": "index.js",
   "license": "MIT",
@@ -12,7 +12,7 @@
     "jest": "jest -i",
     "test": "jest -i --runInBand --detectOpenHandles --forceExit --passWithNoTests",
     "test:coverage": "jest --runInBand --coverage",
-    "serveo": "ssh -R 80:localhost:3034 serveo.net",
+    "serveo": "ssh -R 80:localhost:3035 serveo.net",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {

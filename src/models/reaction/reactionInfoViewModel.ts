@@ -6,6 +6,13 @@ export type ReactionInfoViewModel = {
   myStatus: ReactionStatusEnum; 
 };
 
+export type ExtendedReactionInfoViewModelForPost = {   
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: ReactionStatusEnum; 
+  newestLikes: NewestLikeDetailsViewModel;
+};
+
 
 export type ReactionInfoDBModel = {
   likesCount: number;
@@ -16,4 +23,10 @@ export type LikeStatusType = {
   myStatus: ReactionStatusEnum,
   userId: string,
   createdAt: string
+}
+
+export type NewestLikeDetailsViewModel = {
+  addedAt: string,
+  userId: string,
+  login: string | null
 }

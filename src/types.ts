@@ -1,8 +1,9 @@
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { UserViewModel } from "./models/users/userViewModel";
-import { ReactionInfoDBModel, ReactionInfoViewModel } from "./models/reaction/reactionInfoViewModel";
+import { LikeStatusType, ReactionInfoDBModel } from "./models/reaction/reactionInfoViewModel";
 import { ReactionStatusEnum } from "./domain/schemas/reactionInfo.schema";
+import { PostsViewModel } from './models/posts/postsViewModel';
 
 export class BlogsMongoDbType {
   constructor(
@@ -15,16 +16,52 @@ export class BlogsMongoDbType {
   ) {}
 }
 
-export class PostsMongoDbType {
+export class PostsMongoDb {
+  public _id: ObjectId;
+  public title: string;
+  public shortDescription: string;
+  public content: string;
+  public blogId: string;
+  public blogName: string | null;
+  public createdAt: string;
+  public extendedLikesInfo: ReactionInfoDBModel;
   constructor(
-    public _id: ObjectId,
-    public title: string,
-    public shortDescription: string,
-    public content: string,
-    public blogId: string,
-    public blogName: string | null,
-    public createdAt: string,
-  ) {}
+    _id: ObjectId,
+    title: string,
+    shortDescription: string,
+    content: string,
+    blogId: string,
+    blogName: string | null,
+    createdAt: string,
+    extendedLikesInfo: ReactionInfoDBModel,
+  ) {
+    this._id = new ObjectId()
+    this.title = title
+    this.shortDescription = shortDescription
+    this.content = content
+    this.blogId = blogId
+    this.blogName = blogName || null
+    this.createdAt = createdAt
+    this.extendedLikesInfo = extendedLikesInfo
+  }
+  /*     static getViewModel(user: UsersMongoDbType | null, post: PostsMongoDb): PostsViewModel {
+        return {
+          id: post._id.toString(),
+          title: post.title,
+          shortDescription: post.shortDescription,
+          content: post.content,
+          blogId: post.blogId,
+          blogName: post.blogName,
+          createdAt: post.createdAt,
+          extendedLikesInfo: {
+            likesCount: post.extendedLikesInfo.likesCount,
+            dislikesCount: post.extendedLikesInfo.dislikesCount,
+            myStatus: user? post.extendedLikesInfo.myStatus
+              .find(((s: LikeStatusType) => s.userId === user!._id.toString()))?.myStatus || ReactionStatusEnum.None : ReactionStatusEnum.None,
+              newestLikes: post.extendedLikesInfo.newestLikes
+          }
+        }
+      } */
 }
 
 export class UsersMongoDbType {
