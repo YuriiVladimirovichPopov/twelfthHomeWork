@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 import { PostsMongoDb } from "../../types";
-import { ObjectId, WithId } from "mongodb";
-import { LikesInfoSchema } from "./reactionInfo.schema";
-import { NewestLikeDetailsViewModel } from "../../models/reaction/reactionInfoViewModel";
+import { ReactionStatusEnum } from "./reactionInfo.schema";
+import { ExtendedReactionInfoViewModelForPost, NewestLikeDetailsViewModel } from "../../models/reaction/reactionInfoViewModel";
 
 export const titleValid = {
   minLength: 1,
@@ -24,13 +23,24 @@ export const blogNameValid = {
   maxLength: 15,
 };
 
-export const NewestLikeDetailsForPostSchema = new mongoose.Schema<NewestLikeDetailsViewModel>({
+
+
+const NewestLikeDetailsForPostSchema = new mongoose.Schema<NewestLikeDetailsViewModel>({
   addedAt: {type: String, required: true},
-  userId: {type:String, required: true},
-  login: {type:String, required: true}
-})
+  userId: {type: String, required: true},
+  login: {type: String, required: true}
+}, { _id: false })
 export const NewestLikeDetailsForPostModel = mongoose.model('NewestLikeDetailsViewModel', NewestLikeDetailsForPostSchema)
 
+
+export const ExtendedReactionForPostSchema = new mongoose.Schema<ExtendedReactionInfoViewModelForPost>({  
+  likesCount: { type: Number, required: true },
+  dislikesCount: { type: Number, required: true },
+  myStatus: { type: String, enum: Object.values(ReactionStatusEnum), required: true },
+  newestLikes: [{type: NewestLikeDetailsForPostSchema, required: true}],
+}, { _id: false });
+export const ExtendedReactionForPostModel = mongoose.model('ExtendedReactionForPostModel', ExtendedReactionForPostSchema)
+ 
 
 export const PostSchema = new mongoose.Schema<PostsMongoDb>({
   _id: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -52,10 +62,7 @@ export const PostSchema = new mongoose.Schema<PostsMongoDb>({
     maxLength: blogNameValid.maxLength,
   },
   createdAt: { type: String, required: true },
-  extendedLikesInfo: {
-    likesInfo: { type: LikesInfoSchema, required: true },
-    newestLikes: {type: [NewestLikeDetailsForPostSchema], defaultValue: []}
-  }
+  extendedLikesInfo: {type: ExtendedReactionForPostSchema, required: true}
 });
 
 export const PostModel = mongoose.model("posts", PostSchema);

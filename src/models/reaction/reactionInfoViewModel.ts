@@ -10,7 +10,7 @@ export type ExtendedReactionInfoViewModelForPost = {
   likesCount: number;
   dislikesCount: number;
   myStatus: ReactionStatusEnum; 
-  newestLikes: NewestLikeDetailsViewModel;
+  newestLikes: NewestLikeDetailsViewModel[];
 };
 
 

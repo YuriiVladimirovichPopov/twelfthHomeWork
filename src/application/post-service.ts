@@ -5,23 +5,19 @@ import { PostsRepository } from "../repositories/posts-repository";
 import { QueryPostRepository } from "../query repozitory/queryPostsRepository";
 import { Paginated } from "../routers/helpers/pagination";
 import { PaginatedType } from "../routers/helpers/pagination";
-import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { injectable } from "inversify";
 import { ReactionsRepository } from "../repositories/reaction-repository";
 import { UserModel } from "../domain/schemas/users.schema";
-import { ExtendedReactionForPostModel, ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
+import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ObjectId } from "mongodb";
 import { PostModel } from "../domain/schemas/posts.schema";
-import { LikeStatusType } from "../models/reaction/reactionInfoViewModel";
-import { PostsMongoDb, UsersMongoDbType } from "../types";
-import { UserViewModel } from "../models/users/userViewModel";
+import { LikeStatusType, ReactionInfoViewModel } from "../models/reaction/reactionInfoViewModel";
 
 
 @injectable()
 export class PostsService {
   
   constructor(
-    private queryBlogsRepository: QueryBlogsRepository,
     private queryPostRepository: QueryPostRepository,
     private postsRepository: PostsRepository,
     private reactionsRepository: ReactionsRepository
@@ -35,30 +31,6 @@ export class PostsService {
 
   async findPostById(id: string, userId: string): Promise<PostsViewModel | null> {
     return await this.queryPostRepository.findPostById(id, userId);
-  }
-  async createPost(data: PostsInputModel, user?: UsersMongoDbType | null): Promise<PostsViewModel | null> {
-    const blog = await this.queryBlogsRepository.findBlogById(data.blogId);
-    if (!blog) return null;
-
-    const newPost: PostsViewModel = {
-      ...data,
-      blogName: blog.name,
-      createdAt: new Date().toISOString(),
-      extendedLikesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: ReactionStatusEnum.None,
-        newestLikes: user? [{      // TODO: можно ли так добавлять???
-          addedAt: new Date().toISOString(),
-          userId: user._id,
-          login: user.login
-      }] : []
-      }       
-    };
-    const createdPost =
-      await this.postsRepository.createdPostForSpecificBlog(newPost, user);
-
-    return createdPost;
   }
 
   async updatePost(
@@ -117,24 +89,25 @@ export class PostsService {
     return post;
   }
   
-  async updatePostLikesInfo(post: PostsMongoDb) {
+  async updatePostLikesInfo(post: PostsViewModel) {
     const [likesCount, dislikesCount] = await Promise.all([
-      ReactionModel.countDocuments({ parentId: post._id.toString(), myStatus: ReactionStatusEnum.Like }),
-      ReactionModel.countDocuments({ parentId: post._id.toString(), myStatus: ReactionStatusEnum.Dislike })
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
     ]);
       // TODO: три последних лайка храним отдельно, для этого создаем отдельную модель и потом к ней обращаемся
     const myStatus = post.extendedLikesInfo.myStatus;
 
-    const newestLikes = post.extendedLikesInfo.newestLikes
-      .filter((like: LikeStatusType) => like.myStatus !== ReactionStatusEnum.None)  
-      //TODO: сюда еще скорей всего надо добавить !== ReactionStatusEnum.Dislike
+    const newestLikes = post.extendedLikesInfo
+      .find((like: ReactionInfoViewModel) => 
+        like.myStatus !== ReactionStatusEnum.None && 
+        like.myStatus !== ReactionStatusEnum.Dislike)  
       .sort((a: LikeStatusType, b: LikeStatusType) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3)
     
 
     post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
-    await PostModel.findByIdAndUpdate(post._id.toString(), { likesInfo: post.extendedLikesInfo });
+    await PostModel.findByIdAndUpdate(post.id.toString(), { likesInfo: post.extendedLikesInfo });
     console.log("Post likes info updated:   ", post.extendedLikesInfo);
   }
   

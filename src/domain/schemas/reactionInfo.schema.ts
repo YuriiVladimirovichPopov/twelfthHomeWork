@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import { ExtendedReactionInfoViewModelForPost, LikeStatusType, NewestLikeDetailsViewModel } from "../../models/reaction/reactionInfoViewModel";
-import { NewestLikeDetailsForPostSchema } from "./posts.schema";
+
 
 export const userLoginValid = {
   minLength: 3,
@@ -41,12 +40,6 @@ export const LikesInfoSchema = new mongoose.Schema(
   export const LikesInfoModel = mongoose.model("LikesInfo",LikesInfoSchema)
 
 
-  export const ExtendedReactionForPostSchema = new mongoose.Schema<ExtendedReactionInfoViewModelForPost>({  
-    likesCount: { type: Number, required: true },
-    dislikesCount: { type: Number, required: true },
-    myStatus: {ReactionStatusEnum},
-    newestLikes: {type: NewestLikeDetailsForPostSchema, required: true},
-  });
-  export const ExtendedReactionForPostModel = mongoose.model('ExtendedReactionForPostModel', ExtendedReactionForPostSchema)
+  
 
   

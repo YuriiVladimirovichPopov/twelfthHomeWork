@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { UserViewModel } from "./models/users/userViewModel";
-import { LikeStatusType, ReactionInfoDBModel } from "./models/reaction/reactionInfoViewModel";
+import { ExtendedReactionInfoViewModelForPost, ReactionInfoDBModel } from "./models/reaction/reactionInfoViewModel";
 import { ReactionStatusEnum } from "./domain/schemas/reactionInfo.schema";
 import { PostsViewModel } from './models/posts/postsViewModel';
 
@@ -44,7 +44,7 @@ export class PostsMongoDb {
     this.createdAt = createdAt
     this.extendedLikesInfo = extendedLikesInfo
   }
-  /*     static getViewModel(user: UsersMongoDbType | null, post: PostsMongoDb): PostsViewModel {
+      static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
         return {
           id: post._id.toString(),
           title: post.title,
@@ -56,12 +56,11 @@ export class PostsMongoDb {
           extendedLikesInfo: {
             likesCount: post.extendedLikesInfo.likesCount,
             dislikesCount: post.extendedLikesInfo.dislikesCount,
-            myStatus: user? post.extendedLikesInfo.myStatus
-              .find(((s: LikeStatusType) => s.userId === user!._id.toString()))?.myStatus || ReactionStatusEnum.None : ReactionStatusEnum.None,
-              newestLikes: post.extendedLikesInfo.newestLikes
+            myStatus:  postReaction? postReaction.myStatus : ReactionStatusEnum.None,
+            newestLikes: postReaction?.newestLikes
           }
         }
-      } */
+      }
 }
 
 export class UsersMongoDbType {
@@ -131,12 +130,12 @@ export class RateLimitMongoDbType {
 export class ReactionMongoDb {
   constructor(
     public _id: ObjectId,
-    public parentId: string,
-    public userId: string,
+    public parentId: ObjectId,
+    public userId: ObjectId,
     public userLogin: string,
     public myStatus: ReactionStatusEnum,
-    public createdAt: string,
-    public updatedAt: boolean,
+    public createdAt: Date,
+    public updatedAt: Date,
   ) {}
 }
 

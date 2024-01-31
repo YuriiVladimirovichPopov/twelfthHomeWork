@@ -6,17 +6,20 @@ import { PostsViewModel } from "../models/posts/postsViewModel";
 import { PostModel } from "../domain/schemas/posts.schema";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { injectable } from "inversify";
-import { ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
+import { ExtendedReactionInfoViewModelForPost } from "../models/reaction/reactionInfoViewModel";
+import { ExtendedReactionForPostModel } from "../domain/schemas/posts.schema";
 
 
 @injectable()
 export class PostsRepository {
   private queryBlogsRepository: QueryBlogsRepository;
+  
   constructor() {
     this.queryBlogsRepository = new QueryBlogsRepository();
+    
   }
 
-  private postMapper(post: PostsMongoDb): PostsViewModel {
+  private postMapper(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
     return {
       id: post._id.toString(),
       title: post.title,
@@ -28,14 +31,14 @@ export class PostsRepository {
       extendedLikesInfo: {   
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,
-        myStatus: post.extendedLikesInfo.myStatus,
-        newestLikes: post.extendedLikesInfo.newestLikes,
+        myStatus: postReaction.myStatus,
+        newestLikes: postReaction.newestLikes,
       }
     };
   }
 
   async createdPostForSpecificBlog(
-    newPost: PostsViewModel, user: UsersMongoDbType | null
+    newPost: PostsViewModel, 
   ): Promise<PostsViewModel | null> {
     const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
     if (!blog) {
@@ -52,12 +55,19 @@ export class PostsRepository {
       extendedLikesInfo: {
         likesCount: newPost.extendedLikesInfo.likesCount,
         dislikesCount: newPost.extendedLikesInfo.dislikesCount,
-
-        //TODO: сюда добавляем все недостающее 
       } 
     };
-    await PostModel.create(createPostForBlog);
-    return this.postMapper(createPostForBlog); 
+
+    //await PostModel.create(createPostForBlog)
+
+    const createdPost = 
+    await await PostModel.create(createPostForBlog);// тут циклическая зависимость
+    
+    const reaction: ExtendedReactionInfoViewModelForPost = 
+    await ExtendedReactionForPostModel.create(createdPost); //TODO: здесь тоже не очень красиво и не понятно!!!
+
+
+    return this.postMapper(createPostForBlog, reaction); 
   }
 
   async updatePost(

@@ -1,11 +1,9 @@
 import "reflect-metadata";
 import { Response, Request } from "express";
 import { BlogService } from "../application/blog-service";
-import { PostsService } from "../application/post-service";
 import { BlogInputModel } from "../models/blogs/blogsInputModel";
 import { BlogViewModel } from "../models/blogs/blogsViewModel";
 import { getByIdParam } from "../models/getById";
-import { PostsInputModel } from "../models/posts/postsInputModel";
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { QueryPostRepository } from "../query repozitory/queryPostsRepository";
 import {
@@ -15,13 +13,14 @@ import {
 import { httpStatuses } from "../routers/helpers/send-status";
 import { RequestWithBody, RequestWithParams } from "../types";
 import { injectable } from "inversify";
+import { PostsRepository } from "../repositories/posts-repository";
 
 
 @injectable()
 export class BlogsController {
   constructor(
     private blogService: BlogService,
-    private postsService: PostsService,
+    private postsRepository: PostsRepository,
     private queryPostRepository: QueryPostRepository,
   ) {}
 
@@ -39,6 +38,7 @@ export class BlogsController {
     const newBlog = await this.blogService.createBlog(req.body);
     return res.status(httpStatuses.CREATED_201).send(newBlog);
   }
+
   async getPostByBlogId(
     req: Request<{ blogId: string }, {}, {}, {}>,
     res: Response,
@@ -58,24 +58,32 @@ export class BlogsController {
 
     return res.status(httpStatuses.OK_200).send(foundBlogWithAllPosts);
   }
+
+
   async createPostForBlogById(req: Request, res: Response) {
     const blogId = req.params.blogId;
 
-    const { title, shortDescription, content } = req.body;
+    const { id, title, shortDescription, content, blogName, createdAt, extendedLikesInfo } = req.body;
 
-    const newPostForBlogById: PostsInputModel | null =
-      await this.postsService.createPost({
+    const newPostForBlogById: PostsViewModel | null =
+      await this.postsRepository.createdPostForSpecificBlog({
+        id,
         title,
         shortDescription,
         content,
-        blogId,
-      });
+        blogId, 
+        blogName,
+        createdAt,
+        extendedLikesInfo
+      },
+      );
 
     if (newPostForBlogById) {
       return res.status(httpStatuses.CREATED_201).send(newPostForBlogById);
     }
     return res.sendStatus(httpStatuses.NOT_FOUND_404);
   }
+
   async getBlogById(
     req: RequestWithParams<getByIdParam>,
     res: Response<BlogViewModel>,
@@ -85,6 +93,7 @@ export class BlogsController {
 
     return res.status(httpStatuses.OK_200).send(foundBlog);
   }
+
   async updateBlogById(
     req: Request<getByIdParam, BlogInputModel>,
     res: Response<BlogViewModel>,
@@ -97,6 +106,7 @@ export class BlogsController {
 
     return res.sendStatus(httpStatuses.NO_CONTENT_204);
   }
+
   async deleteBlogById(req: RequestWithParams<getByIdParam>, res: Response) {
     const foundBlog = await this.blogService.deleteBlog(req.params.id);
     if (!foundBlog) {

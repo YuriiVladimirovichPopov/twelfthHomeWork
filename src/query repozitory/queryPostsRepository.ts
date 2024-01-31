@@ -4,16 +4,15 @@ import { PaginatedType, Paginated } from "../routers/helpers/pagination";
 import { ObjectId, WithId } from "mongodb";
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { CommentModel } from "../domain/schemas/comments.schema";
-import { PostModel } from "../domain/schemas/posts.schema";
+import { ExtendedReactionForPostModel, PostModel } from "../domain/schemas/posts.schema";
 import { injectable } from "inversify";
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
-
-//const filter: mongoose.FilterQuery<PostsMongoDbType> = {};
+import { ExtendedReactionInfoViewModelForPost, NewestLikeDetailsViewModel } from "../models/reaction/reactionInfoViewModel";
 
 
 @injectable()
 export class QueryPostRepository {
-  _postMapper(post: PostsMongoDb): PostsViewModel { 
+  _postMapper(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel { 
     return {    //TODO: надо поменять как в комментах и будет счастье по идее
       id: post._id.toString(),
       title: post.title,
@@ -25,8 +24,8 @@ export class QueryPostRepository {
       extendedLikesInfo: {   
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,
-        myStatus: post.extendedLikesInfo.myStatus,
-        newestLikes: post.extendedLikesInfo.newestLikes,
+        myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
+        newestLikes: postReaction.newestLikes,
       }
     };
   }
@@ -58,17 +57,51 @@ export class QueryPostRepository {
 
     const totalCount: number = await PostModel.countDocuments(filter);
     const pageCount: number = Math.ceil(totalCount / pagination.pageSize);
+    const reactions: ExtendedReactionInfoViewModelForPost[] = await Promise.all(
+      result.map(async (post) => {
+        const res = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean()
+        
+       const viewPost = {
+        id: post._id.toString()
+        likeInfo: res ? {
+          likesCount: res.likesCount,
+          dislikesCount: 0,
+          myStatus: ReactionStatusEnum.None,
+          newestLikes: res.newestLikes as NewestLikeDetailsViewModel[]
+        } : {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: ReactionStatusEnum.None,
+          newestLikes: [] as NewestLikeDetailsViewModel[]
+        }
+       }
+       
+       
+       
+        return res ? {
+          likesCount: res.likesCount,
+          dislikesCount: 0,
+          myStatus: ReactionStatusEnum.None,
+          newestLikes: res.newestLikes as NewestLikeDetailsViewModel[]
+        } : {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: ReactionStatusEnum.None,
+          newestLikes: [] as NewestLikeDetailsViewModel[]
+        }
+      })
+    )
 
     return {
       pagesCount: pageCount,
       page: pagination.pageNumber,
       pageSize: pagination.pageSize,
       totalCount: totalCount,
-      items: result.map((res) => this._postMapper(res)),   // TODO: may be переделать этот метод подобно комментам?
+      items: result.map((res) => this._postMapper(res, reactions[reactions.length - 1])),   
     };
   }
 
-  async findPostById(id: string, userId: string): Promise<PostsViewModel | null> { // TODO надо ли сюда добавлять юзера?
+  async findPostById(id: string, userId: string): Promise<PostsViewModel | null> { 
     //console.log("Searching for post with ID:", id);
     if (!ObjectId.isValid(id)) {
       return null;
@@ -87,7 +120,16 @@ export class QueryPostRepository {
     if (!findPost) {
       return null;
     }
-    return this._postMapper(findPost);    
+    return this._postMapper(findPost, {
+      likesCount: findPost.extendedLikesInfo.likesCount,
+      dislikesCount: findPost.extendedLikesInfo.dislikesCount,
+      myStatus: myStatus,
+      newestLikes: [{
+        addedAt: "",
+        userId: "",
+        login: "",
+      }],
+    })    
   }
 
   async findAllCommentsforPostId(    //TODO: сюда тоже юзерАйди засунуть?

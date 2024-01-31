@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Container, injectable, inject } from "inversify";
 import { AuthService } from "./application/auth-service";
 import { BlogService } from "./application/blog-service";
@@ -26,10 +27,11 @@ import { ReactionController } from './controllers/reactionController';
 
 
 export const blogsRepository = new BlogsRepository();
-export const postsRepository = new PostsRepository();
+
 export const commentsRepository = new CommentsRepository();
 export const commentsQueryRepository = new CommentsQueryRepository();
 export const queryBlogsRepository = new QueryBlogsRepository();
+export const postsRepository = new PostsRepository();
 export const queryPostRepository = new QueryPostRepository();
 export const usersRepository = new UsersRepository();
 export const queryUserRepository = new QueryUserRepository();
@@ -60,6 +62,9 @@ export const commentsService = new CommentsService(
   reactionsRepository
 )
 
+
+
+
 export const authController = new AuthController(
   usersRepository,
   authService,
@@ -79,7 +84,7 @@ export const securityController = new SecurityController(
 
 export const blogsController = new BlogsController(
   blogService,
-  postsService,
+  postsRepository,
   queryPostRepository,
 );
 
@@ -94,6 +99,7 @@ export const postController = new PostController(
   queryBlogsRepository,
   queryPostRepository,
   commentsQueryRepository,
+  postsRepository
 );
 
 export const reactionController = new ReactionController(

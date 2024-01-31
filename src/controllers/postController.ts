@@ -14,12 +14,13 @@ import {
   PaginatedType,
 } from "../routers/helpers/pagination";
 import { httpStatuses } from "../routers/helpers/send-status";
-import { RequestWithBody, RequestWithParams, UsersMongoDbType } from "../types";
+import { PostsMongoDb, RequestWithBody, RequestWithParams, UsersMongoDbType } from "../types";
 import {
   commentsRepository,
   queryUserRepository,
 } from "../composition-root";
 import { injectable } from "inversify";
+import { PostsRepository } from "../repositories/posts-repository";
 
 
 
@@ -30,6 +31,7 @@ export class PostController {
     private queryBlogsRepository: QueryBlogsRepository,
     private queryPostRepository: QueryPostRepository,
     private commentsQueryRepository: CommentsQueryRepository,
+    private postsRepository: PostsRepository
   ) {}
 
   async getCommentsByPostId(
@@ -46,7 +48,7 @@ export class PostController {
       return res.sendStatus(httpStatuses.NOT_FOUND_404);
     }
 
-    const pagination = getPaginationFromQuery(
+    const pagination: PaginatedType = getPaginationFromQuery(
       req.query as unknown as PaginatedType, // TODO bad solution
     );
     const allCommentsForPostId: Paginated<CommentViewModel> =
@@ -55,7 +57,6 @@ export class PostController {
         pagination,
         user?._id.toString(),
       );
-//TODO: добавляем комменты с реакциями типа reactionQueryRepository.findLikesForManyComments 
   
     return res.status(httpStatuses.OK_200).send(allCommentsForPostId);
   }
@@ -109,10 +110,10 @@ export class PostController {
     const user = req.body.userId //TODO: может добавить проверку? что юзер может быть null?
 
     if (findBlogById) {
-      const data: PostsInputModel = req.body;
+      const data: PostsViewModel = req.body;   //TODO:тут переделал из инпут во вью модель
       
       const newPost: PostsViewModel | null = 
-      await this.postsService.createPost(data, user)          // TODO: исходящую модель поменять? по сваггеру?
+      await this.postsRepository.createdPostForSpecificBlog(data)          // TODO: исходящую модель поменять? по сваггеру?
 
       if (!newPost) {
         return res.sendStatus(httpStatuses.BAD_REQUEST_400);
@@ -146,6 +147,7 @@ export class PostController {
     }
   }
 
+
   async updateLikesDislikesForPost(req: Request, res: Response) {
     try {
       console.log('updateLikesDislikes   ', req.body, );  
@@ -158,7 +160,7 @@ export class PostController {
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,
         userId,
-        likeStatus, // TODO: сюда надо еще добавить последние три лайка
+        likeStatus, 
       );
 
       if (!updatedPost) {
