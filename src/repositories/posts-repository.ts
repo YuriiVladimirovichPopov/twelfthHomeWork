@@ -3,11 +3,12 @@ import { PostsMongoDb, UsersMongoDbType } from "../types";
 import { ObjectId } from "mongodb";
 import { PostsInputModel } from "../models/posts/postsInputModel";
 import { PostsViewModel } from "../models/posts/postsViewModel";
-import { PostModel } from "../domain/schemas/posts.schema";
+import { NewestLikeDetailsForPostModel, PostModel } from "../domain/schemas/posts.schema";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { injectable } from "inversify";
 import { ExtendedReactionInfoViewModelForPost } from "../models/reaction/reactionInfoViewModel";
 import { ExtendedReactionForPostModel } from "../domain/schemas/posts.schema";
+import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 
 
 @injectable()
@@ -79,6 +80,32 @@ export class PostsRepository {
       { $set: { ...data } },
     );
     return foundPostById.matchedCount === 1;
+  }
+
+  async updatePostLikesInfo(post: PostsViewModel) {
+    const [likesCount, dislikesCount] = await Promise.all([
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
+    ]);
+  
+    // Получаем информацию о три последних лайках
+    const newestLikes = await NewestLikeDetailsForPostModel
+      .find({ parentId: post.id.toString() })
+      .sort({ addedAt: -1 }) // Сортируем по убыванию времени добавления
+      .limit(3)
+      .exec();
+  
+    const myStatus = post.extendedLikesInfo.myStatus;
+  
+    post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
+  
+    // Обновляем поле newestLikes в модели ExtendedReactionForPostModel
+    await PostModel.findByIdAndUpdate(post.id.toString(), {
+      'extendedLikesInfo.newestLikes': newestLikes,
+      likesInfo: post.extendedLikesInfo
+    });
+  
+    console.log("Post likes info updated:   ", post.extendedLikesInfo);
   }
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {

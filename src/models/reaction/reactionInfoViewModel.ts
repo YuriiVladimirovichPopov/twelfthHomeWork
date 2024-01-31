@@ -19,11 +19,11 @@ export type ReactionInfoDBModel = {
   dislikesCount: number;
 };
 
-export type LikeStatusType = {
+/* export type LikeStatusType = {
   myStatus: ReactionStatusEnum,
   userId: string,
   createdAt: string
-}
+} */
 
 export type NewestLikeDetailsViewModel = {
   addedAt: string,

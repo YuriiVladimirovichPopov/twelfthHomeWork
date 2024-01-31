@@ -74,7 +74,6 @@ export class ReactionsService {
   }
 
   async getReactionsForParentId(parentId: string): Promise<ReactionMongoDb[]> {
-    //return await ReactionModel.find({ parentId }).exec();
     const reactions = await ReactionModel.find({ parentId }).exec();
     return reactions.map((reaction) => reaction.toObject() as ReactionMongoDb);
   }

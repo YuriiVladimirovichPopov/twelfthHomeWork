@@ -1,13 +1,11 @@
 import "reflect-metadata";
 import { ObjectId } from "mongodb";
 import { CommentModel } from "../domain/schemas/comments.schema";
-import { CommentsMongoDbType } from "../types";
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { CommentsQueryRepository } from "../query repozitory/queryCommentsRepository";
 import { ReactionsService } from "./reaction-service";
 import { CommentViewModel } from "../models/comments/commentViewModel";
 import { injectable } from "inversify";
-import { Document } from "mongoose";
 import { UserModel } from "../domain/schemas/users.schema";
 import { ReactionsRepository } from "../repositories/reaction-repository";
 

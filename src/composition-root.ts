@@ -41,20 +41,21 @@ export const authService = new AuthService(
   usersRepository,
   queryUserRepository,
 );
+
+export const reactionsService = new ReactionsService(
+  reactionsRepository
+)
+
 export const blogService = new BlogService(
     blogsRepository,
     queryBlogsRepository 
 );
 export const postsService = new PostsService(
-    queryBlogsRepository,
     queryPostRepository,
     postsRepository,
-    reactionsRepository
+    reactionsRepository,
+    reactionsService
 );
-
-export const reactionsService = new ReactionsService(
-  reactionsRepository
-)
 
 export const commentsService = new CommentsService(
   commentsQueryRepository,

@@ -49,38 +49,22 @@ export class QueryPostRepository {
     filter: {},
     pagination: PaginatedType,
   ): Promise<Paginated<PostsViewModel>> {
-    const result: WithId<PostsMongoDb>[] = await PostModel.find(filter)
-      .sort({ [pagination.sortBy]: pagination.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .lean();
-
-    const totalCount: number = await PostModel.countDocuments(filter);
-    const pageCount: number = Math.ceil(totalCount / pagination.pageSize);
-    const reactions: ExtendedReactionInfoViewModelForPost[] = await Promise.all(
-      result.map(async (post) => {
-        const res = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean()
-        
-       const viewPost = {
-        id: post._id.toString()
-        likeInfo: res ? {
-          likesCount: res.likesCount,
-          dislikesCount: 0,
-          myStatus: ReactionStatusEnum.None,
-          newestLikes: res.newestLikes as NewestLikeDetailsViewModel[]
-        } : {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: ReactionStatusEnum.None,
-          newestLikes: [] as NewestLikeDetailsViewModel[]
-        }
-       }
-       
-       
-       
+    try {
+      const result: WithId<PostsMongoDb>[] = await PostModel.find(filter)
+        .sort({ [pagination.sortBy]: pagination.sortDirection })
+        .skip(pagination.skip)
+        .limit(pagination.pageSize)
+        .lean();
+  
+      const totalCount: number = await PostModel.countDocuments(filter);
+      const pageCount: number = Math.ceil(totalCount / pagination.pageSize);
+  
+      const reactionsPromises: Promise<ExtendedReactionInfoViewModelForPost>[] = result.map(async (post) => {
+        const res = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean();
+  
         return res ? {
           likesCount: res.likesCount,
-          dislikesCount: 0,
+          dislikesCount: res.dislikesCount,
           myStatus: ReactionStatusEnum.None,
           newestLikes: res.newestLikes as NewestLikeDetailsViewModel[]
         } : {
@@ -88,18 +72,26 @@ export class QueryPostRepository {
           dislikesCount: 0,
           myStatus: ReactionStatusEnum.None,
           newestLikes: [] as NewestLikeDetailsViewModel[]
-        }
-      })
-    )
-
-    return {
-      pagesCount: pageCount,
-      page: pagination.pageNumber,
-      pageSize: pagination.pageSize,
-      totalCount: totalCount,
-      items: result.map((res) => this._postMapper(res, reactions[reactions.length - 1])),   
-    };
+        };
+      });
+  
+      const reactions: ExtendedReactionInfoViewModelForPost[] = await Promise.all(reactionsPromises);
+  
+      const items: PostsViewModel[] = result.map((res, index) => this._postMapper(res, reactions[index]));
+  
+      return {
+        pagesCount: pageCount,
+        page: pagination.pageNumber,
+        pageSize: pagination.pageSize,
+        totalCount: totalCount,
+        items: items,
+      };
+    } catch (error) {
+      console.error("Error while finding posts:", error);
+      throw error;
+    }
   }
+  
 
   async findPostById(id: string, userId: string): Promise<PostsViewModel | null> { 
     //console.log("Searching for post with ID:", id);

@@ -11,7 +11,8 @@ import { UserModel } from "../domain/schemas/users.schema";
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ObjectId } from "mongodb";
 import { PostModel } from "../domain/schemas/posts.schema";
-import { LikeStatusType, ReactionInfoViewModel } from "../models/reaction/reactionInfoViewModel";
+import { reactionsService } from '../composition-root';
+import { ReactionsService } from "./reaction-service";
 
 
 @injectable()
@@ -20,7 +21,8 @@ export class PostsService {
   constructor(
     private queryPostRepository: QueryPostRepository,
     private postsRepository: PostsRepository,
-    private reactionsRepository: ReactionsRepository
+    private reactionsRepository: ReactionsRepository,
+    private reactionsService: ReactionsService
   ) {}
 
   async findAllPosts(
@@ -88,29 +90,37 @@ export class PostsService {
     await this.updatePostLikesInfo(post);
     return post;
   }
-  
+
   async updatePostLikesInfo(post: PostsViewModel) {
-    const [likesCount, dislikesCount] = await Promise.all([
-      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
-      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
-    ]);
-      // TODO: три последних лайка храним отдельно, для этого создаем отдельную модель и потом к ней обращаемся
-    const myStatus = post.extendedLikesInfo.myStatus;
-
-    const newestLikes = post.extendedLikesInfo
-      .find((like: ReactionInfoViewModel) => 
-        like.myStatus !== ReactionStatusEnum.None && 
-        like.myStatus !== ReactionStatusEnum.Dislike)  
-      .sort((a: LikeStatusType, b: LikeStatusType) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 3)
-    
-
-    post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
-    await PostModel.findByIdAndUpdate(post.id.toString(), { likesInfo: post.extendedLikesInfo });
-    console.log("Post likes info updated:   ", post.extendedLikesInfo);
+    await this.postsRepository.updatePostLikesInfo(post);
   }
-  
+
+  async countUserReactions (userId: string): Promise<{ likes: number; dislikes: number }> {
+    const reactions = await PostModel.aggregate([
+      { $unwind: "$likesInfo" },
+      {
+        $group: {
+          _id: "$likesInfo.userId",
+          likes: { $sum: { $cond: [{ $eq: ["$likesInfo.myStatus", ReactionStatusEnum.Like] }, 1, 0] } },
+          dislikes: { $sum: { $cond: [{ $eq: ["$likesInfo.myStatus", ReactionStatusEnum.Dislike] }, 1, 0] } },
+        },
+      },
+      { $match: { _id: new ObjectId(userId) } },
+    ]);
+    console.log(this.countUserReactions,'countUserReactions')
+    return reactions.length > 0 ? reactions[0] : { likes: 0, dislikes: 0 };
+  }
+
+  async changeReactionForPost(
+    postId: string, 
+    userId: string, 
+    userLogin: string, 
+    likeStatus: ReactionStatusEnum) {
+        console.log(this.changeReactionForPost,'changeReactionForComment') 
+    const post = await this.queryPostRepository.findPostById(postId, userId);
+    if (!post) throw new Error("Comment not found");
+    return this.reactionsService.updateReactionByParentId(postId, userId, userLogin, likeStatus);
+  }
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {
     return await this.postsRepository.deletePost(id);
