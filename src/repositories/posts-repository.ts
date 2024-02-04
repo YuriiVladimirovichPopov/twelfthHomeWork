@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { PostsMongoDb, UsersMongoDbType } from "../types";
+import { PostsMongoDb } from "../types";
 import { ObjectId } from "mongodb";
 import { PostsInputModel } from "../models/posts/postsInputModel";
 import { PostsViewModel } from "../models/posts/postsViewModel";
@@ -13,11 +13,9 @@ import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInf
 
 @injectable()
 export class PostsRepository {
-  private queryBlogsRepository: QueryBlogsRepository;
-  
+  private queryBlogsRepository: QueryBlogsRepository; 
   constructor() {
     this.queryBlogsRepository = new QueryBlogsRepository();
-    
   }
 
   private postMapper(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
@@ -37,14 +35,13 @@ export class PostsRepository {
       }
     };
   }
-
-  async createdPostForSpecificBlog(
-    newPost: PostsViewModel, 
-  ): Promise<PostsViewModel | null> {
+    //TODO: переписать этот метод, сделать подобным async createComment
+  async createdPostForSpecificBlog(newPost: PostsMongoDb ): Promise<PostsViewModel | null> {
     const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
     if (!blog) {
       return null;
     }
+  
     const createPostForBlog: PostsMongoDb = {
       _id: new ObjectId(),
       title: newPost.title,
@@ -52,25 +49,32 @@ export class PostsRepository {
       content: newPost.content,
       blogId: newPost.blogId,
       blogName: blog.name,
-      createdAt: new Date().toISOString(), 
+      createdAt: new Date().toISOString(),
       extendedLikesInfo: {
-        likesCount: newPost.extendedLikesInfo.likesCount,
-        dislikesCount: newPost.extendedLikesInfo.dislikesCount,
-      } 
+        likesCount: newPost.extendedLikesInfo?.likesCount || 0,
+        dislikesCount: newPost.extendedLikesInfo?.dislikesCount || 0,
+        newestLikes: newPost.extendedLikesInfo?.newestLikes,   // TODO: добавил невестЛайкс
+      },
     };
-
-    //await PostModel.create(createPostForBlog)
-
-    const createdPost = 
-    await await PostModel.create(createPostForBlog);// тут циклическая зависимость
-    
-    const reaction: ExtendedReactionInfoViewModelForPost = 
-    await ExtendedReactionForPostModel.create(createdPost); //TODO: здесь тоже не очень красиво и не понятно!!!
-
-
-    return this.postMapper(createPostForBlog, reaction); 
+  
+    try {
+      const createdPost = await PostModel.create(createPostForBlog);
+      const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({
+        postId: createdPost._id, 
+        likesCount: createPostForBlog.extendedLikesInfo.likesCount,
+        dislikesCount: createPostForBlog.extendedLikesInfo.dislikesCount,
+        myStatus: ReactionStatusEnum.None,
+        newestLikes: []
+      });
+      
+  
+      return this.postMapper(createPostForBlog, reaction);
+    } catch (error) {
+      console.error('Error creating post:', error);
+      return null;
+    }
   }
-
+  
   async updatePost(
     id: string,
     data: PostsInputModel,
@@ -100,7 +104,7 @@ export class PostsRepository {
     post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
   
     // Обновляем поле newestLikes в модели ExtendedReactionForPostModel
-    await PostModel.findByIdAndUpdate(post.id.toString(), {
+    await PostModel.findByIdAndUpdate(post.id.toString(), {   // TODO: здесь скорей всего ошибка 
       'extendedLikesInfo.newestLikes': newestLikes,
       likesInfo: post.extendedLikesInfo
     });

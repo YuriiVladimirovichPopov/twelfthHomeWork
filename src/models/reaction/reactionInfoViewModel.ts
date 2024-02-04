@@ -19,6 +19,12 @@ export type ReactionInfoDBModel = {
   dislikesCount: number;
 };
 
+//добавил для постов
+export type ReactionInfoDBModelForPost = {
+  likesCount: number;
+  dislikesCount: number;
+  newestLikes: NewestLikeDetailsViewModel[];
+};
 /* export type LikeStatusType = {
   myStatus: ReactionStatusEnum,
   userId: string,

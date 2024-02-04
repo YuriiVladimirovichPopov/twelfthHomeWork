@@ -36,9 +36,9 @@ export const NewestLikeDetailsForPostModel = mongoose.model('NewestLikeDetailsVi
 export const ExtendedReactionForPostSchema = new mongoose.Schema<ExtendedReactionInfoViewModelForPost>({  
   likesCount: { type: Number, required: true },
   dislikesCount: { type: Number, required: true },
-  myStatus: { type: String, enum: Object.values(ReactionStatusEnum), required: true },
+  //myStatus: { type: String, enum: Object.values(ReactionStatusEnum), required: true },
   newestLikes: [{type: NewestLikeDetailsForPostSchema, required: true}],
-}, { _id: false });
+});
 export const ExtendedReactionForPostModel = mongoose.model('ExtendedReactionForPostModel', ExtendedReactionForPostSchema)
  
 

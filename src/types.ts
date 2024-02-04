@@ -1,10 +1,13 @@
+import "reflect-metadata";
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { UserViewModel } from "./models/users/userViewModel";
-import { ExtendedReactionInfoViewModelForPost, ReactionInfoDBModel } from "./models/reaction/reactionInfoViewModel";
+import { ReactionInfoDBModel, ReactionInfoDBModelForPost } from "./models/reaction/reactionInfoViewModel";
 import { ReactionStatusEnum } from "./domain/schemas/reactionInfo.schema";
-import { PostsViewModel } from './models/posts/postsViewModel';
+import { injectable } from "inversify";
 
+
+@injectable()
 export class BlogsMongoDbType {
   constructor(
     public _id: ObjectId,
@@ -16,6 +19,7 @@ export class BlogsMongoDbType {
   ) {}
 }
 
+@injectable()
 export class PostsMongoDb {
   public _id: ObjectId;
   public title: string;
@@ -24,7 +28,7 @@ export class PostsMongoDb {
   public blogId: string;
   public blogName: string | null;
   public createdAt: string;
-  public extendedLikesInfo: ReactionInfoDBModel;
+  public extendedLikesInfo: ReactionInfoDBModelForPost;
   constructor(
     _id: ObjectId,
     title: string,
@@ -33,7 +37,7 @@ export class PostsMongoDb {
     blogId: string,
     blogName: string | null,
     createdAt: string,
-    extendedLikesInfo: ReactionInfoDBModel,
+    extendedLikesInfo: ReactionInfoDBModelForPost,
   ) {
     this._id = new ObjectId()
     this.title = title
@@ -44,7 +48,7 @@ export class PostsMongoDb {
     this.createdAt = createdAt
     this.extendedLikesInfo = extendedLikesInfo
   }
-      static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
+      /* static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
         return {
           id: post._id.toString(),
           title: post.title,
@@ -60,9 +64,10 @@ export class PostsMongoDb {
             newestLikes: postReaction?.newestLikes
           }
         }
-      }
+      } */
 }
 
+@injectable()
 export class UsersMongoDbType {
   constructor(
     public _id: ObjectId,
@@ -82,6 +87,7 @@ export type EmailConfirmationType = {
   expirationDate: Date;
 };
 
+@injectable()
 export class createPostDTOType {
   constructor(
     public title: string,
@@ -93,9 +99,11 @@ export class createPostDTOType {
   ) {}
 }
 
+@injectable()
 export class CommentsMongoDbType {
+  public _id: ObjectId
+  
   constructor(
-    public _id: ObjectId,
     public postId: string,
     public parentId: string,
     public content: string,
@@ -105,9 +113,12 @@ export class CommentsMongoDbType {
     },
     public createdAt: string,
     public likesInfo: ReactionInfoDBModel,
-  ) {}
+  ) {
+    this._id = new ObjectId()
+  }
 }
 
+@injectable()
 export class DeviceMongoDbType {
   constructor(
     public _id: ObjectId,
@@ -119,6 +130,7 @@ export class DeviceMongoDbType {
   ) {}
 }
 
+@injectable()
 export class RateLimitMongoDbType {
   constructor(
     public IP: string,
@@ -127,6 +139,7 @@ export class RateLimitMongoDbType {
   ) {}
 }
 
+@injectable()
 export class ReactionMongoDb {
   constructor(
     public _id: ObjectId,

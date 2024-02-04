@@ -7,12 +7,15 @@ import { Paginated } from "../routers/helpers/pagination";
 import { PaginatedType } from "../routers/helpers/pagination";
 import { injectable } from "inversify";
 import { ReactionsRepository } from "../repositories/reaction-repository";
-import { UserModel } from "../domain/schemas/users.schema";
+import { UserModel } from '../domain/schemas/users.schema';
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ObjectId } from "mongodb";
 import { PostModel } from "../domain/schemas/posts.schema";
 import { reactionsService } from '../composition-root';
 import { ReactionsService } from "./reaction-service";
+import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
+import { UserViewModel } from "../models/users/userViewModel";
+import { PostsMongoDb } from "../types";
 
 
 @injectable()
@@ -22,7 +25,8 @@ export class PostsService {
     private queryPostRepository: QueryPostRepository,
     private postsRepository: PostsRepository,
     private reactionsRepository: ReactionsRepository,
-    private reactionsService: ReactionsService
+    private reactionsService: ReactionsService,
+    private queryBlogsRepository: QueryBlogsRepository
   ) {}
 
   async findAllPosts(
@@ -34,6 +38,32 @@ export class PostsService {
   async findPostById(id: string, userId: string): Promise<PostsViewModel | null> {
     return await this.queryPostRepository.findPostById(id, userId);
   }
+
+  async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
+    const blog = await this.queryBlogsRepository.findBlogById(data.blogId);  
+    if (!blog) return null;
+    const newPost: PostsMongoDb = {    
+      _id: new ObjectId(),
+      ...data,
+      blogName: blog.name,
+      createdAt: new Date().toISOString(),
+      extendedLikesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        newestLikes: user ? [{
+          addedAt: new Date().toISOString(),
+          userId: user.id,
+          login: user.login
+        }] : []
+      } // TODO: нужно поменять этот метод, м/б подобно коммент репе креатеКоммент
+    };
+    const createdPost =
+      await this.postsRepository.createdPostForSpecificBlog(newPost);
+console.log("createdPost", createdPost);
+    return createdPost;
+  }
+
+  
 
   async updatePost(
     id: string,

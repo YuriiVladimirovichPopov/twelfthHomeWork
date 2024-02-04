@@ -14,6 +14,7 @@ import { httpStatuses } from "../routers/helpers/send-status";
 import { RequestWithBody, RequestWithParams } from "../types";
 import { injectable } from "inversify";
 import { PostsRepository } from "../repositories/posts-repository";
+import { ObjectId } from "bson";
 
 
 @injectable()
@@ -67,7 +68,7 @@ export class BlogsController {
 
     const newPostForBlogById: PostsViewModel | null =
       await this.postsRepository.createdPostForSpecificBlog({
-        id,
+        _id: new ObjectId(),
         title,
         shortDescription,
         content,

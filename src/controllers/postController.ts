@@ -101,16 +101,15 @@ export class PostController {
   }
 
   async createPostByBlogId(
-    req: Request, //TODO: переопределить реквест
+    req: Request, 
     res: Response<PostsViewModel | null>,
   ) {
     const findBlogById = await this.queryBlogsRepository.findBlogById(
       req.body.blogId,
     );
-    const user = req.body.userId //TODO: может добавить проверку? что юзер может быть null?
 
     if (findBlogById) {
-      const data: PostsViewModel = req.body;   //TODO:тут переделал из инпут во вью модель
+      const data: PostsMongoDb = req.body;   //TODO:тут переделал из инпут во вью модель
       
       const newPost: PostsViewModel | null = 
       await this.postsRepository.createdPostForSpecificBlog(data)          // TODO: исходящую модель поменять? по сваггеру?
@@ -121,6 +120,7 @@ export class PostController {
       return res.status(httpStatuses.CREATED_201).send(newPost);
     }
   }
+
   async getPostById(req: Request, res: Response) {
     const foundPost = await this.postsService.findPostById(
       req.params.id,
@@ -148,7 +148,7 @@ export class PostController {
   }
 
 
-  async updateLikesDislikesForPost(req: Request, res: Response) {
+  async updateLikesDislikesForPost(req: Request, res: Response) {  
     try {
       console.log('updateLikesDislikes   ', req.body, );  
       console.log('userId   ', req.body.userId);
