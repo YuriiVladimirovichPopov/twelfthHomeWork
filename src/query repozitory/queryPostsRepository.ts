@@ -8,6 +8,7 @@ import { ExtendedReactionForPostModel, PostModel } from "../domain/schemas/posts
 import { injectable } from "inversify";
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ExtendedReactionInfoViewModelForPost, NewestLikeDetailsViewModel } from "../models/reaction/reactionInfoViewModel";
+import { PostsInputModel } from "../models/posts/postsInputModel";
 
 
 @injectable()
@@ -100,11 +101,11 @@ export class QueryPostRepository {
     }
 
     let myStatus:ReactionStatusEnum = ReactionStatusEnum.None;
-
+    let reaction
+    
     if(userId){
-      const reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id})  //Ксения помогла. 
-                                                                            //Таким образом надо сделать на все гет запросы, 
-      myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      //где есть комменты
+      reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id})  //Ксения помогла.                                                                            
+      myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None   //Таким образом надо сделать на все гет запросы,   //где есть комменты
     }
 
     const _id = new ObjectId(id);
@@ -112,16 +113,20 @@ export class QueryPostRepository {
     if (!findPost) {
       return null;
     }
-    return this._postMapper(findPost, {
+     
+    const res = this._postMapper(findPost, {
       likesCount: findPost.extendedLikesInfo.likesCount,
       dislikesCount: findPost.extendedLikesInfo.dislikesCount,
-      myStatus: myStatus,
-      newestLikes: [{
+      myStatus: reaction ? reaction.myStatus : ReactionStatusEnum.None,
+      newestLikes: [/* {
         addedAt: "",
         userId: "",
         login: "",
-      }],
-    })    
+      } */],
+    })
+    console.log("res++++++",      res)
+    return res 
+
   }
 
   async findAllCommentsforPostId(    //TODO: сюда тоже юзерАйди засунуть?

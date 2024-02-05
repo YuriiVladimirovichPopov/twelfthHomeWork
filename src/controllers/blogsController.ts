@@ -68,7 +68,7 @@ export class BlogsController {
 
     const newPostForBlogById: PostsViewModel | null =
       await this.postsRepository.createdPostForSpecificBlog({
-        _id: new ObjectId(),
+        id,
         title,
         shortDescription,
         content,

@@ -109,7 +109,7 @@ export class PostController {
     );
 
     if (findBlogById) {
-      const data: PostsMongoDb = req.body;   //TODO:тут переделал из инпут во вью модель
+      const data: PostsViewModel = req.body;   //TODO:тут переделал из инпут во вью модель
       
       const newPost: PostsViewModel | null = 
       await this.postsRepository.createdPostForSpecificBlog(data)          // TODO: исходящую модель поменять? по сваггеру?

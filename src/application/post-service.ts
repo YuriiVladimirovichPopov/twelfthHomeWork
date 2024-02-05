@@ -26,7 +26,6 @@ export class PostsService {
     private postsRepository: PostsRepository,
     private reactionsRepository: ReactionsRepository,
     private reactionsService: ReactionsService,
-    private queryBlogsRepository: QueryBlogsRepository
   ) {}
 
   async findAllPosts(
@@ -39,7 +38,7 @@ export class PostsService {
     return await this.queryPostRepository.findPostById(id, userId);
   }
 
-  async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
+ /*  async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
     const blog = await this.queryBlogsRepository.findBlogById(data.blogId);  
     if (!blog) return null;
     const newPost: PostsMongoDb = {    
@@ -61,7 +60,7 @@ export class PostsService {
       await this.postsRepository.createdPostForSpecificBlog(newPost);
 console.log("createdPost", createdPost);
     return createdPost;
-  }
+  } */
 
   
 

@@ -55,7 +55,6 @@ export const postsService = new PostsService(
     postsRepository,
     reactionsRepository,
     reactionsService,
-    queryBlogsRepository
 );
 
 export const commentsService = new CommentsService(

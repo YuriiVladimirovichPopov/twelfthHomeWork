@@ -30,19 +30,22 @@ export class PostsRepository {
       extendedLikesInfo: {   
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,
-        myStatus: postReaction.myStatus,
+        myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
         newestLikes: postReaction.newestLikes,
       }
     };
+
+
+    
   }
     //TODO: переписать этот метод, сделать подобным async createComment
-  async createdPostForSpecificBlog(newPost: PostsMongoDb ): Promise<PostsViewModel | null> {
+  async createdPostForSpecificBlog(newPost: PostsViewModel ): Promise<PostsViewModel | null> {
     const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
     if (!blog) {
       return null;
     }
   
-    const createPostForBlog: PostsMongoDb = {
+    const createPostForBlog: PostsMongoDb = {   //TODO: тут все хорошо. Тесты требуют myStatus! одно 'НО'
       _id: new ObjectId(),
       title: newPost.title,
       shortDescription: newPost.shortDescription,
@@ -53,6 +56,7 @@ export class PostsRepository {
       extendedLikesInfo: {
         likesCount: newPost.extendedLikesInfo?.likesCount || 0,
         dislikesCount: newPost.extendedLikesInfo?.dislikesCount || 0,
+        //myStatus: newPost.extendedLikesInfo?.myStatus,
         newestLikes: newPost.extendedLikesInfo?.newestLikes,   // TODO: добавил невестЛайкс
       },
     };
@@ -86,6 +90,32 @@ export class PostsRepository {
     return foundPostById.matchedCount === 1;
   }
 
+  /* async updatePostLikesInfo(post: PostsViewModel) {
+    const [likesCount, dislikesCount] = await Promise.all([
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
+      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
+    ]);
+  
+    // Получаем информацию о три последних лайках
+    const newestLikes = await NewestLikeDetailsForPostModel
+      .find({ parentId: post.id.toString() })
+      .sort({ addedAt: -1 }) // Сортируем по убыванию времени добавления
+      .limit(3)
+      .exec();
+    console.log(" newest", newestLikes)
+    const myStatus = post.extendedLikesInfo.myStatus;
+    console.log(" myStatus", myStatus)
+    post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
+  
+    // Обновляем поле newestLikes в модели ExtendedReactionForPostModel
+    await PostModel.findByIdAndUpdate(post.id.toString(), {   // TODO: здесь скорей всего ошибка 
+      'extendedLikesInfo.newestLikes': newestLikes,
+      likesInfo: post.extendedLikesInfo
+    });
+  
+    console.log("Post likes info updated:   ", post.extendedLikesInfo);
+  } */
+
   async updatePostLikesInfo(post: PostsViewModel) {
     const [likesCount, dislikesCount] = await Promise.all([
       ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
@@ -99,18 +129,30 @@ export class PostsRepository {
       .limit(3)
       .exec();
   
-    const myStatus = post.extendedLikesInfo.myStatus;
+    // Преобразуем объекты из newestLikes в ожидаемый формат
+    const formattedNewestLikes = newestLikes.map(like => ({
+      addedAt: like.addedAt,
+      userId: like.userId,
+      login: like.login
+    }));
   
-    post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
+    // Создаем объект с обновленными данными
+    const updatedExtendedReaction: ExtendedReactionInfoViewModelForPost = {
+      likesCount,
+      dislikesCount,
+      myStatus: post.extendedLikesInfo.myStatus,
+      newestLikes: formattedNewestLikes
+    };
   
-    // Обновляем поле newestLikes в модели ExtendedReactionForPostModel
-    await PostModel.findByIdAndUpdate(post.id.toString(), {   // TODO: здесь скорей всего ошибка 
-      'extendedLikesInfo.newestLikes': newestLikes,
-      likesInfo: post.extendedLikesInfo
+    // Обновляем поле extendedLikesInfo в документе PostModel
+    await PostModel.findByIdAndUpdate(post.id.toString(), {
+      'extendedLikesInfo': updatedExtendedReaction
     });
   
-    console.log("Post likes info updated:   ", post.extendedLikesInfo);
-  }
+    console.log("Post likes info updated: ", updatedExtendedReaction);
+}
+
+
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {
     const foundPostById = await PostModel.deleteOne({ _id: new ObjectId(id) });

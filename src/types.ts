@@ -2,9 +2,10 @@ import "reflect-metadata";
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { UserViewModel } from "./models/users/userViewModel";
-import { ReactionInfoDBModel, ReactionInfoDBModelForPost } from "./models/reaction/reactionInfoViewModel";
+import { ExtendedReactionInfoViewModelForPost, ReactionInfoDBModel, ReactionInfoDBModelForPost } from "./models/reaction/reactionInfoViewModel";
 import { ReactionStatusEnum } from "./domain/schemas/reactionInfo.schema";
 import { injectable } from "inversify";
+import { PostsViewModel } from "./models/posts/postsViewModel";
 
 
 @injectable()
@@ -48,7 +49,7 @@ export class PostsMongoDb {
     this.createdAt = createdAt
     this.extendedLikesInfo = extendedLikesInfo
   }
-      /* static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
+      static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
         return {
           id: post._id.toString(),
           title: post.title,
@@ -64,7 +65,7 @@ export class PostsMongoDb {
             newestLikes: postReaction?.newestLikes
           }
         }
-      } */
+      }
 }
 
 @injectable()

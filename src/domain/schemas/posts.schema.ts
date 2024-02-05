@@ -38,7 +38,7 @@ export const ExtendedReactionForPostSchema = new mongoose.Schema<ExtendedReactio
   dislikesCount: { type: Number, required: true },
   //myStatus: { type: String, enum: Object.values(ReactionStatusEnum), required: true },
   newestLikes: [{type: NewestLikeDetailsForPostSchema, required: true}],
-});
+},);
 export const ExtendedReactionForPostModel = mongoose.model('ExtendedReactionForPostModel', ExtendedReactionForPostSchema)
  
 
@@ -66,3 +66,7 @@ export const PostSchema = new mongoose.Schema<PostsMongoDb>({
 });
 
 export const PostModel = mongoose.model("posts", PostSchema);
+
+
+
+
