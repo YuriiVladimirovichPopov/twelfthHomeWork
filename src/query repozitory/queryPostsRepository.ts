@@ -6,7 +6,7 @@ import { PostsViewModel } from "../models/posts/postsViewModel";
 import { CommentModel } from "../domain/schemas/comments.schema";
 import { ExtendedReactionForPostModel, PostModel } from "../domain/schemas/posts.schema";
 import { injectable } from "inversify";
-import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
+import { ReactionModel, ReactionStatusEnum, userLoginValid } from "../domain/schemas/reactionInfo.schema";
 import { ExtendedReactionInfoViewModelForPost, NewestLikeDetailsViewModel } from "../models/reaction/reactionInfoViewModel";
 import { PostsInputModel } from "../models/posts/postsInputModel";
 
@@ -26,9 +26,9 @@ export class QueryPostRepository {
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,
         myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
-        newestLikes: postReaction.newestLikes,
+        newestLikes: postReaction.newestLikes ,
       }
-    };
+    }
   }
 
   async findAllPostsByBlogId(
@@ -62,11 +62,11 @@ export class QueryPostRepository {
   
       const reactionsPromises: Promise<ExtendedReactionInfoViewModelForPost>[] = result.map(async (post) => {
         const res = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean();
-  
+  console.log('res',      res);
         return res ? {
           likesCount: res.likesCount,
           dislikesCount: res.dislikesCount,
-          myStatus: ReactionStatusEnum.None,
+          myStatus: ReactionStatusEnum.None,//TODO поменять!!!!
           newestLikes: res.newestLikes as NewestLikeDetailsViewModel[]
         } : {
           likesCount: 0,
@@ -94,39 +94,44 @@ export class QueryPostRepository {
   }
   
 
-  async findPostById(id: string, userId: string): Promise<PostsViewModel | null> { 
+  async findPostById(id: string, userId?: string): Promise<PostsViewModel | null> { 
     //console.log("Searching for post with ID:", id);
     if (!ObjectId.isValid(id)) {
       return null;
     }
 
-    let myStatus:ReactionStatusEnum = ReactionStatusEnum.None;
-    let reaction
-    
-    if(userId){
-      reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id})  //Ксения помогла.                                                                            
-      myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None   //Таким образом надо сделать на все гет запросы,   //где есть комменты
-    }
-
     const _id = new ObjectId(id);
     const findPost = await PostModel.findOne({ _id: _id });
+    
     if (!findPost) {
       return null;
     }
-     
-    const res = this._postMapper(findPost, {
-      likesCount: findPost.extendedLikesInfo.likesCount,
-      dislikesCount: findPost.extendedLikesInfo.dislikesCount,
-      myStatus: reaction ? reaction.myStatus : ReactionStatusEnum.None,
-      newestLikes: [/* {
-        addedAt: "",
-        userId: "",
-        login: "",
-      } */],
-    })
-    console.log("res++++++",      res)
-    return res 
 
+    let myStatus: ReactionStatusEnum = ReactionStatusEnum.None;
+   
+    console.log('=====userId)====', userId)
+    if(userId){
+      const reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id}) 
+                                                                                  
+      myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      
+    }
+
+    const newestLikes = await ReactionModel.find({parentId: id}).sort({addedAt: -1}).limit(3)
+    
+    const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: findPost._id.toString() }).lean();
+    console.log('extendedReaction', extendedReaction)
+
+    const res = this._postMapper(findPost, {
+      likesCount: extendedReaction ? extendedReaction.likesCount : 0,
+      dislikesCount: extendedReaction ? extendedReaction.dislikesCount : 0,
+      myStatus: myStatus,
+      newestLikes: newestLikes.map(reaction => ({
+        userId: reaction.userId,
+        login: reaction.userLogin,
+        addedAt: reaction.createdAt,
+      })),
+    });
+    return res;
   }
 
   async findAllCommentsforPostId(    //TODO: сюда тоже юзерАйди засунуть?

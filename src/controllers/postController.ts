@@ -124,13 +124,14 @@ export class PostController {
   async getPostById(req: Request, res: Response) {
     const foundPost = await this.postsService.findPostById(
       req.params.id,
-      req.params.userId);
+      req.body.user);   // TODO:  тут крашится!!!
     if (!foundPost) {
       res.sendStatus(httpStatuses.NOT_FOUND_404);
     } else {
       res.status(httpStatuses.OK_200).send(foundPost);
     }
   }
+
   async updatePostById(
     req: Request<getByIdParam, PostsInputModel>,
     res: Response<PostsViewModel>,
@@ -151,16 +152,20 @@ export class PostController {
   async updateLikesDislikesForPost(req: Request, res: Response) {  
     try {
       console.log('updateLikesDislikes   ', req.body, );  
-      console.log('userId   ', req.body.userId);
+      //console.log('userId   ', req.body.userId);
        
       const postId = req.params.postId;
       const userId = req.body.userId!;
-      const { likeStatus } = req.body;
+      const userLogin = req.body.userLogin;    // TODO добавил
+      const reactionStatus = req.body.reactionStatus;  // TODO добавил
+      const { likeStatus } = req.body;   
 
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,
         userId,
-        likeStatus, 
+        userLogin,  // TODO добавил
+        reactionStatus,   // TODO добавил
+        likeStatus,   
       );
 
       if (!updatedPost) {

@@ -33,7 +33,9 @@ postsRouter.post(
   postController.createCommentsByPostId.bind(postController),
 );
 
-postsRouter.get("/", postController.getAllPosts.bind(postController));
+postsRouter.get("/", 
+guestAccessMiddleware,
+postController.getAllPosts.bind(postController));
 
 postsRouter.post(
   "/",
@@ -42,7 +44,9 @@ postsRouter.post(
   postController.createPostByBlogId.bind(postController),
 );
 
-postsRouter.get("/:id", postController.getPostById.bind(postController));
+postsRouter.get("/:id", 
+guestAccessMiddleware,
+postController.getPostById.bind(postController));
 
 postsRouter.put(
   "/:id",

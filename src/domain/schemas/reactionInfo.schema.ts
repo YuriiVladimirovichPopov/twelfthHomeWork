@@ -27,6 +27,7 @@ export const ReactionSchema = new mongoose.Schema({
     required: true,
     enum: Object.values(ReactionStatusEnum)  
   },
+  createdAt: { type: String, required: true },   //TODO добавил
 }, { _id: true, versionKey: false });   
 export const ReactionModel = mongoose.model("reaction", ReactionSchema);
 

@@ -3,7 +3,7 @@ import { PostsMongoDb } from "../types";
 import { ObjectId } from "mongodb";
 import { PostsInputModel } from "../models/posts/postsInputModel";
 import { PostsViewModel } from "../models/posts/postsViewModel";
-import { NewestLikeDetailsForPostModel, PostModel } from "../domain/schemas/posts.schema";
+import { PostModel } from "../domain/schemas/posts.schema";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { injectable } from "inversify";
 import { ExtendedReactionInfoViewModelForPost } from "../models/reaction/reactionInfoViewModel";
@@ -33,10 +33,7 @@ export class PostsRepository {
         myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
         newestLikes: postReaction.newestLikes,
       }
-    };
-
-
-    
+    }
   }
     //TODO: переписать этот метод, сделать подобным async createComment
   async createdPostForSpecificBlog(newPost: PostsViewModel ): Promise<PostsViewModel | null> {
@@ -60,7 +57,7 @@ export class PostsRepository {
         newestLikes: newPost.extendedLikesInfo?.newestLikes,   // TODO: добавил невестЛайкс
       },
     };
-  
+ 
     try {
       const createdPost = await PostModel.create(createPostForBlog);
       const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({
@@ -122,8 +119,8 @@ export class PostsRepository {
       ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
     ]);
   
-    // Получаем информацию о три последних лайках
-    const newestLikes = await NewestLikeDetailsForPostModel
+    // Получаем информацию о 3-х последних лайках
+    const newestLikes = await ReactionModel  
       .find({ parentId: post.id.toString() })
       .sort({ addedAt: -1 }) // Сортируем по убыванию времени добавления
       .limit(3)
@@ -131,9 +128,9 @@ export class PostsRepository {
   
     // Преобразуем объекты из newestLikes в ожидаемый формат
     const formattedNewestLikes = newestLikes.map(like => ({
-      addedAt: like.addedAt,
+      addedAt: like.createdAt,
       userId: like.userId,
-      login: like.login
+      login: like.userLogin
     }));
   
     // Создаем объект с обновленными данными
@@ -143,16 +140,12 @@ export class PostsRepository {
       myStatus: post.extendedLikesInfo.myStatus,
       newestLikes: formattedNewestLikes
     };
-  
+    console.log("Post likes info updated: ", updatedExtendedReaction);
     // Обновляем поле extendedLikesInfo в документе PostModel
     await PostModel.findByIdAndUpdate(post.id.toString(), {
       'extendedLikesInfo': updatedExtendedReaction
     });
-  
-    console.log("Post likes info updated: ", updatedExtendedReaction);
 }
-
-
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {
     const foundPostById = await PostModel.deleteOne({ _id: new ObjectId(id) });

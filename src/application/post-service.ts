@@ -10,7 +10,7 @@ import { ReactionsRepository } from "../repositories/reaction-repository";
 import { UserModel } from '../domain/schemas/users.schema';
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ObjectId } from "mongodb";
-import { PostModel } from "../domain/schemas/posts.schema";
+import {  PostModel } from "../domain/schemas/posts.schema";
 import { reactionsService } from '../composition-root';
 import { ReactionsService } from "./reaction-service";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
@@ -38,7 +38,7 @@ export class PostsService {
     return await this.queryPostRepository.findPostById(id, userId);
   }
 
- /*  async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
+  /* async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
     const blog = await this.queryBlogsRepository.findBlogById(data.blogId);  
     if (!blog) return null;
     const newPost: PostsMongoDb = {    
@@ -74,28 +74,43 @@ console.log("createdPost", createdPost);
   async updateLikesDislikesForPost(
     postId: string,
     userId: string,
+    userLogin: string,     // TODO добавил
+    reactionStatus: ReactionStatusEnum,     // TODO добавил
     action: "None" | "Like" | "Dislike" 
     ) {
 
-      console.log(action, 'Action')
+      console.log('Action первое действие',        action, )
     const post = await this.queryPostRepository.findPostById(postId, userId);
 
     if (!post) {
       return null;
     }
   
-    let reaction = await this.reactionsRepository.findByParentAndUserIds(postId, userId);
-    console.log('Current reaction:    ', reaction);
-  
+    let reaction = await this.reactionsRepository.findByParentIdAndUserId(postId, userId, userLogin, reactionStatus);  
+     // TODO добавил  userLogin  reactionStatus
+     let newestReaction 
     if (!reaction) {
       const user = await UserModel.findOne({_id: new ObjectId(userId)})
+      if (!user) {
+        console.error("User not found");
+        return null;
+      }
       reaction = new ReactionModel({
         _id: new ObjectId(),
         parentId: postId, 
         userId,
-        userLogin: user!.login,
+        userLogin: user.login,    
         myStatus: ReactionStatusEnum.None,
+        createdAt: new Date().toISOString(),    
       });
+
+      /* if (action === ReactionStatusEnum.Like) {
+        newestReaction = new NewestLikeDetailsForPostModel({
+          addedAt: new Date().toISOString(),
+          userId,
+          login: user.login,
+        })
+      } */
     }
   
     switch (action) {
@@ -117,6 +132,7 @@ console.log("createdPost", createdPost);
     console.log('Reaction updated: ============================================');
   
     await this.updatePostLikesInfo(post);
+    console.log('updated post', post);
     return post;
   }
 

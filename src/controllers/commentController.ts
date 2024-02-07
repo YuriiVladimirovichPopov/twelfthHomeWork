@@ -78,9 +78,6 @@ export class CommentController {
 
   async updateLikesDislikes(req: Request, res: Response) {
     try {
-      console.log('updateLikesDislikes   ', req.body, );  
-      console.log('userId   ', req.body.userId);
-       
       const commentId = req.params.commentId;
       const userId = req.body.userId!;
       const { likeStatus } = req.body;
