@@ -25,7 +25,6 @@ export class CommentsService {
       action: "None" | "Like" | "Dislike" 
       ) {
   
-        console.log(action, 'Action')
       const comment = await this.commentsQueryRepository.findCommentById(commentId, userId);
   
       if (!comment) {
@@ -33,7 +32,6 @@ export class CommentsService {
       }
     
       let reaction = await this.reactionsRepository.findByParentAndUserIds(commentId, userId);
-      console.log('Current reaction:    ', reaction);
     
       if (!reaction) {
         const user = await UserModel.findOne({_id: new ObjectId(userId)})
@@ -62,7 +60,6 @@ export class CommentsService {
       }
   
       await reaction.save();
-      console.log('Reaction updated: ============================================');
     
       await this.updateCommentLikesInfo(comment);
       return comment;
@@ -78,10 +75,8 @@ export class CommentsService {
   
       comment.likesInfo = { likesCount, dislikesCount, myStatus };
       await CommentModel.findByIdAndUpdate(comment.id, { likesInfo: comment.likesInfo });
-      console.log("Comment likes info updated:   ", comment.likesInfo);
     } 
       
-
   async countUserReactions (userId: string): Promise<{ likes: number; dislikes: number }> {
     const reactions = await CommentModel.aggregate([
       { $unwind: "$likesInfo" },
@@ -94,7 +89,6 @@ export class CommentsService {
       },
       { $match: { _id: new ObjectId(userId) } },
     ]);
-    console.log(this.countUserReactions,'countUserReactions')
     return reactions.length > 0 ? reactions[0] : { likes: 0, dislikes: 0 };
   }
 
@@ -103,7 +97,7 @@ export class CommentsService {
     userId: string, 
     userLogin: string, 
     likeStatus: ReactionStatusEnum) {
-        console.log(this.changeReactionForComment,'changeReactionForComment') 
+
     const comment = await this.commentsQueryRepository.findCommentById(commentId);
     if (!comment) throw new Error("Comment not found");
     return this.reactionsService.updateReactionByParentId(commentId, userId, userLogin, likeStatus);

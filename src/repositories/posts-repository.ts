@@ -9,6 +9,9 @@ import { injectable } from "inversify";
 import { ExtendedReactionInfoViewModelForPost } from "../models/reaction/reactionInfoViewModel";
 import { ExtendedReactionForPostModel } from "../domain/schemas/posts.schema";
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
+import { UserInputModel } from "../models/users/userInputModel";
+import { UserModel } from '../domain/schemas/users.schema';
+import { UserViewModel } from "../models/users/userViewModel";
 
 
 @injectable()
@@ -19,6 +22,14 @@ export class PostsRepository {
   }
 
   private postMapper(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
+    if (!postReaction) {
+      postReaction = {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: ReactionStatusEnum.None,
+          newestLikes: []
+      };
+  }
     return {
       id: post._id.toString(),
       title: post.title,
@@ -28,21 +39,21 @@ export class PostsRepository {
       blogName: post.blogName || null,
       createdAt: post.createdAt,
       extendedLikesInfo: {   
-        likesCount: post.extendedLikesInfo.likesCount,
-        dislikesCount: post.extendedLikesInfo.dislikesCount,
-        myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
+        likesCount: postReaction.likesCount,
+        dislikesCount: postReaction.dislikesCount,
+        myStatus: postReaction.myStatus || ReactionStatusEnum.None,
         newestLikes: postReaction.newestLikes,
       }
     }
   }
     //TODO: переписать этот метод, сделать подобным async createComment
-  async createdPostForSpecificBlog(newPost: PostsViewModel ): Promise<PostsViewModel | null> {
+  async createdPostForSpecificBlog1(newPost: PostsViewModel ): Promise<PostsViewModel | null> {
     const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
     if (!blog) {
       return null;
     }
   
-    const createPostForBlog: PostsMongoDb = {   //TODO: тут все хорошо. Тесты требуют myStatus! одно 'НО'
+    const createPostForBlog: PostsMongoDb = {  
       _id: new ObjectId(),
       title: newPost.title,
       shortDescription: newPost.shortDescription,
@@ -53,19 +64,19 @@ export class PostsRepository {
       extendedLikesInfo: {
         likesCount: newPost.extendedLikesInfo?.likesCount || 0,
         dislikesCount: newPost.extendedLikesInfo?.dislikesCount || 0,
-        //myStatus: newPost.extendedLikesInfo?.myStatus,
-        newestLikes: newPost.extendedLikesInfo?.newestLikes,   // TODO: добавил невестЛайкс
+        newestLikes: newPost.extendedLikesInfo?.newestLikes || [],   // TODO: добавил невестЛайкс
       },
     };
  
     try {
       const createdPost = await PostModel.create(createPostForBlog);
-      const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({
+      const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({ 
+        // TODO: тут не нравится, скорей всего нужно обращаться к reactionModel и перемапливать newestLikes
         postId: createdPost._id, 
         likesCount: createPostForBlog.extendedLikesInfo.likesCount,
         dislikesCount: createPostForBlog.extendedLikesInfo.dislikesCount,
         myStatus: ReactionStatusEnum.None,
-        newestLikes: []
+        newestLikes: createPostForBlog.extendedLikesInfo.newestLikes || []
       });
       
   
@@ -75,6 +86,54 @@ export class PostsRepository {
       return null;
     }
   }
+
+  async createdPostForSpecificBlog(newPost: PostsViewModel, user?: UserViewModel): Promise<PostsViewModel | null> {
+    try {
+        // Находим блог по id нового поста
+        const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
+        if (!blog) {
+            return null;
+        }
+
+        // Создаем объект поста для базы данных
+        const createPostForBlog: PostsMongoDb = {
+            _id: new ObjectId(),
+            title: newPost.title,
+            shortDescription: newPost.shortDescription,
+            content: newPost.content,
+            blogId: newPost.blogId,
+            blogName: blog.name,
+            createdAt: new Date().toISOString(),
+            extendedLikesInfo: {
+                likesCount: newPost.extendedLikesInfo?.likesCount || 0,
+                dislikesCount: newPost.extendedLikesInfo?.dislikesCount || 0,
+                //myStatus: newPost.extendedLikesInfo?.myStatus || ReactionStatusEnum.None,
+                newestLikes: []  // Пустой массив, так как новый пост не имеет лайков
+            },
+        };
+
+        // Создаем новый пост
+        const createdPost = await PostModel.create(createPostForBlog);
+
+        // Создаем реакции для нового поста
+        const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({
+            postId: createdPost._id,
+            likesCount: createPostForBlog.extendedLikesInfo.likesCount,
+            dislikesCount: createPostForBlog.extendedLikesInfo.dislikesCount,
+            //myStatus: createPostForBlog.extendedLikesInfo.myStatus,
+            newestLikes: []  // Пустой массив, так как новый пост не имеет лайков
+        });
+
+        // Преобразуем созданный пост и реакции в формат PostsViewModel
+        const postsViewModel = await this.postMapper(createPostForBlog, reaction);
+
+        return postsViewModel;
+    } catch (error) {
+        console.error('Error creating post:', error);
+        return null;
+    }
+}
+
   
   async updatePost(
     id: string,
@@ -86,32 +145,6 @@ export class PostsRepository {
     );
     return foundPostById.matchedCount === 1;
   }
-
-  /* async updatePostLikesInfo(post: PostsViewModel) {
-    const [likesCount, dislikesCount] = await Promise.all([
-      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
-      ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
-    ]);
-  
-    // Получаем информацию о три последних лайках
-    const newestLikes = await NewestLikeDetailsForPostModel
-      .find({ parentId: post.id.toString() })
-      .sort({ addedAt: -1 }) // Сортируем по убыванию времени добавления
-      .limit(3)
-      .exec();
-    console.log(" newest", newestLikes)
-    const myStatus = post.extendedLikesInfo.myStatus;
-    console.log(" myStatus", myStatus)
-    post.extendedLikesInfo = { likesCount, dislikesCount, myStatus, newestLikes };
-  
-    // Обновляем поле newestLikes в модели ExtendedReactionForPostModel
-    await PostModel.findByIdAndUpdate(post.id.toString(), {   // TODO: здесь скорей всего ошибка 
-      'extendedLikesInfo.newestLikes': newestLikes,
-      likesInfo: post.extendedLikesInfo
-    });
-  
-    console.log("Post likes info updated:   ", post.extendedLikesInfo);
-  } */
 
   async updatePostLikesInfo(post: PostsViewModel) {
     const [likesCount, dislikesCount] = await Promise.all([
@@ -140,7 +173,7 @@ export class PostsRepository {
       myStatus: post.extendedLikesInfo.myStatus,
       newestLikes: formattedNewestLikes
     };
-    console.log("Post likes info updated: ", updatedExtendedReaction);
+    console.log("Post likes info updated++++: ", updatedExtendedReaction);
     // Обновляем поле extendedLikesInfo в документе PostModel
     await PostModel.findByIdAndUpdate(post.id.toString(), {
       'extendedLikesInfo': updatedExtendedReaction

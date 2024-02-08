@@ -10,16 +10,14 @@ export const guestAccessMiddleware = async (
   next: NextFunction,
 ) => {
 try {
-  const { authorization }  = req.headers     //isAuthorized
+  const { authorization }  = req.headers    
   if(!authorization || !authorization.startsWith("Bearer ")) {
     return next()
   }
 
   const token = authorization.split(" ")[1]
-  console.log("token: " + token)
+  //console.log("token: " + token)   приходит(попадает сюда)
   const userId = await jwtService.getUserIdByToken(token)
-
-  console.log("UserId: " + userId)
   
   if (!userId) {
     return next()
@@ -27,7 +25,7 @@ try {
 
   const user: UsersMongoDbType | null = await UserModel.findOne({_id: new ObjectId(userId)})
 
-  console.log("user: " + user)
+  //console.log("userInGuestAccessMiddleware: " + user)   приходит(попадает сюда)
 
   if (user) {
     req.body.user = user

@@ -31,7 +31,6 @@ export class CommentsRepository {
 
     await CommentModel.create({ ...createCommentForPost });
 
-    console.log("commentObject    ", createCommentForPost)
     return {
       id: createCommentForPost._id.toString(),
       content: createCommentForPost.content,

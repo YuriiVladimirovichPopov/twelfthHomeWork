@@ -38,32 +38,6 @@ export class PostsService {
     return await this.queryPostRepository.findPostById(id, userId);
   }
 
-  /* async createPost(data: PostsInputModel, user: UserViewModel | null): Promise<PostsViewModel | null> { // TODO тут беда с типом!!!!
-    const blog = await this.queryBlogsRepository.findBlogById(data.blogId);  
-    if (!blog) return null;
-    const newPost: PostsMongoDb = {    
-      _id: new ObjectId(),
-      ...data,
-      blogName: blog.name,
-      createdAt: new Date().toISOString(),
-      extendedLikesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        newestLikes: user ? [{
-          addedAt: new Date().toISOString(),
-          userId: user.id,
-          login: user.login
-        }] : []
-      } // TODO: нужно поменять этот метод, м/б подобно коммент репе креатеКоммент
-    };
-    const createdPost =
-      await this.postsRepository.createdPostForSpecificBlog(newPost);
-console.log("createdPost", createdPost);
-    return createdPost;
-  } */
-
-  
-
   async updatePost(
     id: string,
     data: PostsInputModel,
@@ -87,8 +61,7 @@ console.log("createdPost", createdPost);
     }
   
     let reaction = await this.reactionsRepository.findByParentIdAndUserId(postId, userId, userLogin, reactionStatus);  
-     // TODO добавил  userLogin  reactionStatus
-     let newestReaction 
+     // TODO добавил  userLogin  reactionStatus 
     if (!reaction) {
       const user = await UserModel.findOne({_id: new ObjectId(userId)})
       if (!user) {
@@ -100,20 +73,12 @@ console.log("createdPost", createdPost);
         parentId: postId, 
         userId,
         userLogin: user.login,    
-        myStatus: ReactionStatusEnum.None,
+        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None
         createdAt: new Date().toISOString(),    
       });
-
-      /* if (action === ReactionStatusEnum.Like) {
-        newestReaction = new NewestLikeDetailsForPostModel({
-          addedAt: new Date().toISOString(),
-          userId,
-          login: user.login,
-        })
-      } */
     }
   
-    switch (action) {
+    switch (action) {     
       case "Like":
         reaction.myStatus = ReactionStatusEnum.Like;
         break;

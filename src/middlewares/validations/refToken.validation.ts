@@ -46,7 +46,7 @@ export async function refTokenMiddleware(
     req.deviceId = device.deviceId;
     next();
   } catch (err) {
-    //console.log(err);
+    console.log(err);
     return res.sendStatus(httpStatuses.INTERNAL_SERVER_ERROR_500);
   }
 }

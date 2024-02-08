@@ -21,7 +21,6 @@ export class CommentController {
   async getCommentById(req: Request, res: Response) {
     const user = req.body.user as UsersMongoDbType | null
 
-    //console.log("USER:", user)
     const foundComment = await this.commentsQueryRepository.findCommentById(
       req.params.commentId,
       user?._id?.toString()
@@ -117,7 +116,6 @@ export class CommentController {
         userLogin,
         likeStatus
       );
-        console.log('updatedReaction    ', updatedReaction);
         
       return res.sendStatus(httpStatuses.NO_CONTENT_204);
     } catch (error) {

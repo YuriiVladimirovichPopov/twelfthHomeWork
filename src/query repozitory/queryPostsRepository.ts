@@ -36,14 +36,14 @@ export class QueryPostRepository {
     pagination: PaginatedType,
   ): Promise<Paginated<PostsViewModel>> {
     const filter = { blogId };
-    return this._findPostsByFilter(filter, pagination);
+    return this._findPostsByFilter1(filter, pagination);
   }
 
   async findAllPosts(
     pagination: PaginatedType,
   ): Promise<Paginated<PostsViewModel>> {
     const filter = {};
-    return this._findPostsByFilter(filter, pagination);
+    return this._findPostsByFilter1(filter, pagination);
   }
 
   async _findPostsByFilter(
@@ -93,7 +93,56 @@ export class QueryPostRepository {
     }
   }
   
-
+  async _findPostsByFilter1(
+    filter: {},
+    pagination: PaginatedType,
+  ): Promise<Paginated<PostsViewModel>> {
+    try {
+      const result: WithId<PostsMongoDb>[] = await PostModel.find(filter)
+        .sort({ [pagination.sortBy]: pagination.sortDirection })
+        .skip(pagination.skip)
+        .limit(pagination.pageSize)
+        .lean();
+  
+      const totalCount: number = await PostModel.countDocuments(filter);
+      const pageCount: number = Math.ceil(totalCount / pagination.pageSize);
+  
+      const items: PostsViewModel[] = [];
+      for (const post of result) {
+        const myStatus: ReactionStatusEnum = ReactionStatusEnum.None;
+        const newestLikes = await ReactionModel.find({ parentId: post._id.toString() })
+          .sort({ addedAt: -1 })
+          .limit(3)
+          .exec();
+  
+        const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean();
+  
+        const res = this._postMapper(post, {
+          likesCount: extendedReaction ? extendedReaction.likesCount : 0,
+          dislikesCount: extendedReaction ? extendedReaction.dislikesCount : 0,
+          myStatus: myStatus,
+          newestLikes: newestLikes.map(reaction => ({
+            userId: reaction.userId,
+            login: reaction.userLogin,
+            addedAt: reaction.createdAt,
+          })),
+        });
+        items.push(res);
+      }
+  
+      return {
+        pagesCount: pageCount,
+        page: pagination.pageNumber,
+        pageSize: pagination.pageSize,
+        totalCount: totalCount,
+        items: items,
+      };
+    } catch (error) {
+      console.error("Error while finding posts:", error);
+      throw error;
+    }
+  }
+  
   async findPostById(id: string, userId?: string): Promise<PostsViewModel | null> { 
     //console.log("Searching for post with ID:", id);
     if (!ObjectId.isValid(id)) {
@@ -109,14 +158,14 @@ export class QueryPostRepository {
 
     let myStatus: ReactionStatusEnum = ReactionStatusEnum.None;
    
-    console.log('=====userId)====', userId)
+    console.log('=====userId====', userId)
     if(userId){
       const reaction = await ReactionModel.findOne({userId: userId.toString(), parentId: id}) 
                                                                                   
       myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      
     }
 
-    const newestLikes = await ReactionModel.find({parentId: id}).sort({addedAt: -1}).limit(3)
+    const newestLikes = await ReactionModel.find({parentId: id}).sort({addedAt: -1}).limit(3).exec()
     
     const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: findPost._id.toString() }).lean();
     console.log('extendedReaction', extendedReaction)
@@ -125,7 +174,7 @@ export class QueryPostRepository {
       likesCount: extendedReaction ? extendedReaction.likesCount : 0,
       dislikesCount: extendedReaction ? extendedReaction.dislikesCount : 0,
       myStatus: myStatus,
-      newestLikes: newestLikes.map(reaction => ({
+      newestLikes: newestLikes?.map(reaction => ({  // TODO +?
         userId: reaction.userId,
         login: reaction.userLogin,
         addedAt: reaction.createdAt,

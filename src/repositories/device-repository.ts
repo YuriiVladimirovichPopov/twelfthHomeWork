@@ -43,7 +43,6 @@ export class DeviceRepository {
         return false;
       }
     } catch (error) {
-      //console.log("Error deleting device by ID:", error);
       return false;
     }
   }

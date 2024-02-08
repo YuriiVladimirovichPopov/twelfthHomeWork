@@ -12,7 +12,7 @@ export async function customRateLimit(
   res: Response,
   next: NextFunction,
 ) {
-  const IP = req.ip || ""; //добавил " " т.к. ругался после обновления на undefined
+  const IP = req.ip || ""; 
   const URL = req.url;
   const date = new Date();
 
@@ -36,7 +36,6 @@ export async function customRateLimit(
     connections.push({ IP, URL, date });
     next();
   } catch (err) {
-    //console.log(err);
     res.sendStatus(httpStatuses.INTERNAL_SERVER_ERROR_500);
   }
 }
