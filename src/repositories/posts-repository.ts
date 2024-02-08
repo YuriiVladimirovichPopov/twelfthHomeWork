@@ -164,9 +164,7 @@ export class PostsRepository {
       userId: like.userId,
       login: like.userLogin
     }));
-
-   
-  
+    
     // Создаем объект с обновленными данными
     const updatedExtendedReaction: ExtendedReactionInfoViewModelForPost = {
       likesCount,

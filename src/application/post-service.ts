@@ -53,7 +53,6 @@ export class PostsService {
     action: "None" | "Like" | "Dislike" 
     ) {
 
-      console.log('Action первое действие',        action, )
     const post = await this.queryPostRepository.findPostById(postId, userId);
 
     if (!post) {
@@ -105,11 +104,6 @@ export class PostsService {
     await this.postsRepository.updatePostLikesInfo(post);
   }
 
-
-
-
-
-  
   async countUserReactions (userId: string): Promise<{ likes: number; dislikes: number }> {
     const reactions = await PostModel.aggregate([
       { $unwind: "$likesInfo" },
