@@ -17,14 +17,16 @@ export class JWTService {
 
   createJWT(user: UsersMongoDbType) {
     const token = jwt.sign({ userId: user._id.toString() }, settings.accessTokenSecret1, {
-      expiresIn: "1000minutes",
+      expiresIn: "1000m",
     });
     return token;
   }
 
   async getUserIdByToken(token: string): Promise<string | null> {
+   // const result = jwt.verify(token, settings.accessTokenSecret1) as Payload;
     try {
       const result = jwt.verify(token, settings.accessTokenSecret1) as Payload; 
+      console.log('result: ' + JSON.stringify(result));
       return result.userId;
     } catch (error) {
       return null;
@@ -35,7 +37,7 @@ export class JWTService {
     const refToken = jwt.sign(
       { userId, deviceId },
       settings.refreshTokenSecret2,
-      { expiresIn: "1000minutes" },
+      { expiresIn: "1000m" },
     );
     return refToken;
   }

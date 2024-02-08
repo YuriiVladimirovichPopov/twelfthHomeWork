@@ -105,6 +105,11 @@ export class PostsService {
     await this.postsRepository.updatePostLikesInfo(post);
   }
 
+
+
+
+
+  
   async countUserReactions (userId: string): Promise<{ likes: number; dislikes: number }> {
     const reactions = await PostModel.aggregate([
       { $unwind: "$likesInfo" },

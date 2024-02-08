@@ -13,7 +13,7 @@ import { PostsInputModel } from "../models/posts/postsInputModel";
 
 @injectable()
 export class QueryPostRepository {
-  _postMapper(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel { 
+  _postMapper(post: PostsMongoDb, myStatus: ReactionStatusEnum): PostsViewModel { 
     return {    //TODO: надо поменять как в комментах и будет счастье по идее
       id: post._id.toString(),
       title: post.title,
@@ -25,8 +25,8 @@ export class QueryPostRepository {
       extendedLikesInfo: {   
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,
-        myStatus: postReaction?.myStatus || ReactionStatusEnum.None,
-        newestLikes: postReaction.newestLikes ,
+        myStatus: myStatus || ReactionStatusEnum.None,
+        newestLikes: post.extendedLikesInfo.newestLikes ,
       }
     }
   }
@@ -78,7 +78,7 @@ export class QueryPostRepository {
   
       const reactions: ExtendedReactionInfoViewModelForPost[] = await Promise.all(reactionsPromises);
   
-      const items: PostsViewModel[] = result.map((res, index) => this._postMapper(res, reactions[index]));
+      const items: PostsViewModel[] = result.map((res, index) => this._postMapper(res, reactions[index].myStatus));
   
       return {
         pagesCount: pageCount,
@@ -110,23 +110,15 @@ export class QueryPostRepository {
       const items: PostsViewModel[] = [];
       for (const post of result) {
         const myStatus: ReactionStatusEnum = ReactionStatusEnum.None;
-        const newestLikes = await ReactionModel.find({ parentId: post._id.toString() })
-          .sort({ addedAt: -1 })
+        const newestLikes = await ReactionModel
+          .find({ parentId: post._id.toString() })
+          .sort({ createdAt: -1 })    //{ addedAt: -1 }
           .limit(3)
           .exec();
   
         const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: post._id.toString() }).lean();
   
-        const res = this._postMapper(post, {
-          likesCount: extendedReaction ? extendedReaction.likesCount : 0,
-          dislikesCount: extendedReaction ? extendedReaction.dislikesCount : 0,
-          myStatus: myStatus,
-          newestLikes: newestLikes.map(reaction => ({
-            userId: reaction.userId,
-            login: reaction.userLogin,
-            addedAt: reaction.createdAt,
-          })),
-        });
+        const res = this._postMapper(post, myStatus);
         items.push(res);
       }
   
@@ -165,21 +157,15 @@ export class QueryPostRepository {
       myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      
     }
 
-    const newestLikes = await ReactionModel.find({parentId: id}).sort({addedAt: -1}).limit(3).exec()
+    //const newestLikes = await ReactionModel.find({parentId: id}).sort({addedAt: -1}).limit(3).exec()
     
     const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: findPost._id.toString() }).lean();
     console.log('extendedReaction', extendedReaction)
 
-    const res = this._postMapper(findPost, {
-      likesCount: extendedReaction ? extendedReaction.likesCount : 0,
-      dislikesCount: extendedReaction ? extendedReaction.dislikesCount : 0,
-      myStatus: myStatus,
-      newestLikes: newestLikes?.map(reaction => ({  // TODO +?
-        userId: reaction.userId,
-        login: reaction.userLogin,
-        addedAt: reaction.createdAt,
-      })),
-    });
+    const res = this._postMapper(findPost, 
+      myStatus
+      
+    );
     return res;
   }
 

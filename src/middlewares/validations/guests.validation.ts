@@ -16,7 +16,7 @@ try {
   }
 
   const token = authorization.split(" ")[1]
-  //console.log("token: " + token)   приходит(попадает сюда)
+  //console.log("token: " + token)  // приходит(попадает сюда)
   const userId = await jwtService.getUserIdByToken(token)
   
   if (!userId) {
@@ -25,7 +25,7 @@ try {
 
   const user: UsersMongoDbType | null = await UserModel.findOne({_id: new ObjectId(userId)})
 
-  //console.log("userInGuestAccessMiddleware: " + user)   приходит(попадает сюда)
+  //console.log("userInGuestAccessMiddleware: " + user)   //приходит(попадает сюда)
 
   if (user) {
     req.body.user = user

@@ -122,9 +122,10 @@ export class PostController {
   }
 
   async getPostById(req: Request, res: Response) {
+    console.log('USER: GET', req.body.user)
     const foundPost = await this.postsService.findPostById(
       req.params.id,
-      req.params.userId);
+      req.body.user?.id);
     if (!foundPost) {
       res.sendStatus(httpStatuses.NOT_FOUND_404);
     } else {
@@ -151,19 +152,14 @@ export class PostController {
 
   async updateLikesDislikesForPost(req: Request, res: Response) {  
     try {
-      console.log('updateLikesDislikes   ', req.body, );  
-      console.log('userId   ', req.body.userId);
-       
+      console.log('updateLikesDislikes!!!   ', req.body, );  
+      console.log('userId!!!   ', req.body.userId);
+      console.log('likeStatus!!!   ', req.body.likeStatus);
       const postId = req.params.postId;
       const userId = req.body.userId!;
       const userLogin = req.body.userLogin;    // TODO добавил
       const reactionStatus = req.body.reactionStatus;  // TODO добавил
-      const { likeStatus } = req.body;   
-
-      if (!likeStatus || !userId) {
-        return res.status(httpStatuses.BAD_REQUEST_400)
-        .send({ message: "Invalid request body", field: "likeStatus" });
-      }
+      const likeStatus = req.body.likeStatus;   //const { likeStatus } = req.body; 
 
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,
@@ -172,7 +168,7 @@ export class PostController {
         reactionStatus,   // TODO добавил
         likeStatus,    //TODO likeStatus -> myStatus
       );
-      //if (likeStatus: '')
+     
 
       if (!updatedPost) {
         return res
