@@ -21,6 +21,7 @@ import {
 } from "../composition-root";
 import { injectable } from "inversify";
 import { PostsRepository } from "../repositories/posts-repository";
+import { ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 
 
 
@@ -160,6 +161,15 @@ export class PostController {
       const userLogin = req.body.userLogin;    // TODO добавил
       const reactionStatus = req.body.reactionStatus;  // TODO добавил
       const likeStatus = req.body.likeStatus;   //const { likeStatus } = req.body; 
+
+      // Проверяем наличие поля likeStatus в теле запроса
+      if (likeStatus !== ReactionStatusEnum.Like 
+        && likeStatus !== ReactionStatusEnum.Dislike 
+        && likeStatus !== ReactionStatusEnum.None ) {   //TODO: дописать этот IF!!!!!
+        return res
+          .status(httpStatuses.BAD_REQUEST_400)
+          .send({ errorsMessages: [{ message: "Like status is required", field: "likeStatus" }] });
+      }
 
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,

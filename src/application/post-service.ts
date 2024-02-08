@@ -53,6 +53,7 @@ export class PostsService {
     action: "None" | "Like" | "Dislike" 
     ) {
 
+     
     const post = await this.queryPostRepository.findPostById(postId, userId);
 
     if (!post) {
@@ -72,17 +73,29 @@ export class PostsService {
         parentId: postId, 
         userId,
         userLogin: user.login,    
-        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None
+        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None //!!!
         createdAt: new Date().toISOString(),    
       });
     }
   
     switch (action) {     
       case "Like":
-        reaction.myStatus = ReactionStatusEnum.Like;
+        // Проверяем, если текущий статус реакции пользователя на пост уже является лайком,
+        // то изменяем действие на "None"
+        if (reaction && reaction.myStatus === ReactionStatusEnum.Like) {
+            reaction.myStatus = ReactionStatusEnum.None;
+        } else {
+            reaction.myStatus = ReactionStatusEnum.Like;
+        }
         break;
-      case "Dislike":
-        reaction.myStatus = ReactionStatusEnum.Dislike;
+    case "Dislike":
+        // Проверяем, если текущий статус реакции пользователя на пост уже является дизлайком,
+        // то изменяем действие на "None"
+        if (reaction && reaction.myStatus === ReactionStatusEnum.Dislike) {
+            reaction.myStatus = ReactionStatusEnum.None;
+        } else {
+            reaction.myStatus = ReactionStatusEnum.Dislike;
+        }
         break;
       case "None":
         reaction.myStatus = ReactionStatusEnum.None;
