@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { MongoClient } from "mongodb";
 import { AuthSchema } from "../domain/schemas/auth.schema";
 
-const dbName = "11_home_work";
+const dbName = "12_home_work";
 const url = process.env.mongoUrl || `mongodb://0.0.0.0:27017`;
 
 console.log(url);

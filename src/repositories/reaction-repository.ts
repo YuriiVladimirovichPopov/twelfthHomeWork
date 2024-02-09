@@ -29,8 +29,8 @@ export class ReactionsRepository {
     return await ReactionModel.findOne({
       parentId,
       userId,
-      userLogin,
-      reactionStatus,
+      //userLogin,
+      //reactionStatus,
     });
   }
 

@@ -133,7 +133,7 @@ export class PostsRepository {
     }
 }
 
-  
+
   async updatePost(
     id: string,
     data: PostsInputModel,
@@ -146,6 +146,7 @@ export class PostsRepository {
   }
 
   async updatePostLikesInfo(post: PostsViewModel) {
+   
     const [likesCount, dislikesCount] = await Promise.all([
       ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Like }),
       ReactionModel.countDocuments({ parentId: post.id.toString(), myStatus: ReactionStatusEnum.Dislike })
@@ -164,7 +165,7 @@ export class PostsRepository {
       userId: like.userId,
       login: like.userLogin
     }));
-    
+
     // Создаем объект с обновленными данными
     const updatedExtendedReaction: ExtendedReactionInfoViewModelForPost = {
       likesCount,

@@ -88,13 +88,13 @@ export class PostController {
       );
     return res.status(httpStatuses.CREATED_201).send(comment);
   }
-
+  //в этот эндпоинт добавить рек.боди.юзер
   async getAllPosts(req: Request, res: Response<Paginated<PostsViewModel>>) {
     const pagination = getPaginationFromQuery(
       req.query as unknown as PaginatedType, // TODO bad solution
     );
     const allPosts: Paginated<PostsViewModel> =
-      await this.queryPostRepository.findAllPosts(pagination);
+      await this.queryPostRepository.findAllPosts(pagination, req.body.user?.id);
     if (!allPosts) {
       return res.status(httpStatuses.NOT_FOUND_404);
     }
@@ -165,7 +165,7 @@ export class PostController {
       // Проверяем наличие поля likeStatus в теле запроса
       if (likeStatus !== ReactionStatusEnum.Like 
         && likeStatus !== ReactionStatusEnum.Dislike 
-        && likeStatus !== ReactionStatusEnum.None ) {   //TODO: дописать этот IF!!!!!
+        && likeStatus !== ReactionStatusEnum.None ) {   
         return res
           .status(httpStatuses.BAD_REQUEST_400)
           .send({ errorsMessages: [{ message: "Like status is required", field: "likeStatus" }] });
@@ -174,8 +174,6 @@ export class PostController {
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,
         userId,
-        userLogin,  // TODO добавил
-        reactionStatus,   // TODO добавил
         likeStatus,    //TODO likeStatus -> myStatus
       );
      

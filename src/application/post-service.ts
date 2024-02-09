@@ -11,10 +11,7 @@ import { UserModel } from '../domain/schemas/users.schema';
 import { ReactionModel, ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { ObjectId } from "mongodb";
 import {  PostModel } from "../domain/schemas/posts.schema";
-import { reactionsService } from '../composition-root';
 import { ReactionsService } from "./reaction-service";
-import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
-import { UserViewModel } from "../models/users/userViewModel";
 import { PostsMongoDb } from "../types";
 
 
@@ -30,8 +27,9 @@ export class PostsService {
 
   async findAllPosts(
     pagination: PaginatedType,
+    userId: string,
   ): Promise<Paginated<PostsViewModel>> {
-    return await this.queryPostRepository.findAllPosts(pagination);
+    return await this.queryPostRepository.findAllPosts(pagination, userId);
   }
 
   async findPostById(id: string, userId: string): Promise<PostsViewModel | null> {
@@ -45,15 +43,14 @@ export class PostsService {
     return await this.postsRepository.updatePost(id, { ...data });
   }
 
-  async updateLikesDislikesForPost(
+  /* async updateLikesDislikesForPost1(
     postId: string,
     userId: string,
     userLogin: string,     // TODO добавил
     reactionStatus: ReactionStatusEnum,     // TODO добавил
     action: "None" | "Like" | "Dislike" 
     ) {
-
-     
+      
     const post = await this.queryPostRepository.findPostById(postId, userId);
 
     if (!post) {
@@ -73,37 +70,33 @@ export class PostsService {
         parentId: postId, 
         userId,
         userLogin: user.login,    
-        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None //!!!
+        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None 
         createdAt: new Date().toISOString(),    
       });
-    }
-  
-    switch (action) {     
+    } else {
+      // Если реакция уже существует, проверяем, является ли действие "Like" или "Dislike"
+      // Если действие совпадает с текущим статусом реакции, то меняем действие на "None"
+      if (action === "Like" && reaction.myStatus === ReactionStatusEnum.Like) {
+          action = "None";
+      } else if (action === "Dislike" && reaction.myStatus === ReactionStatusEnum.Dislike) {
+          action = "None";
+      }
+  }
+  // Обновляем статус реакции в соответствии с новым действием
+  switch (action) {
       case "Like":
-        // Проверяем, если текущий статус реакции пользователя на пост уже является лайком,
-        // то изменяем действие на "None"
-        if (reaction && reaction.myStatus === ReactionStatusEnum.Like) {
-            reaction.myStatus = ReactionStatusEnum.None;
-        } else {
-            reaction.myStatus = ReactionStatusEnum.Like;
-        }
-        break;
-    case "Dislike":
-        // Проверяем, если текущий статус реакции пользователя на пост уже является дизлайком,
-        // то изменяем действие на "None"
-        if (reaction && reaction.myStatus === ReactionStatusEnum.Dislike) {
-            reaction.myStatus = ReactionStatusEnum.None;
-        } else {
-            reaction.myStatus = ReactionStatusEnum.Dislike;
-        }
-        break;
+          reaction.myStatus = ReactionStatusEnum.Like;
+          break;
+      case "Dislike":
+          reaction.myStatus = ReactionStatusEnum.Dislike;
+          break;
       case "None":
-        reaction.myStatus = ReactionStatusEnum.None;
-        break;
+          reaction.myStatus = ReactionStatusEnum.None;
+          break;
       default:
-        console.error("Invalid action:", action);
-        return null;
-    }
+          console.error("Invalid action:", action);
+          return null;
+  }
 
     await reaction.save();
     console.log('Reaction updated: ============================================');
@@ -112,6 +105,63 @@ export class PostsService {
     console.log('updated post', post);
     return post;
   }
+ */
+  async updateLikesDislikesForPost(
+    postId: string,
+    userId: string,
+    action: "None" | "Like" | "Dislike"
+) {
+    const post = await this.queryPostRepository.findPostById(postId, userId);
+
+    if (!post) {
+        return null;
+    }
+
+    let reaction = await this.reactionsRepository.findByParentAndUserIds(postId, userId);
+
+    if (!reaction) {
+        const user = await UserModel.findOne({_id: new ObjectId(userId)});
+        if (!user) {
+            console.error("User not found");
+            return null;
+        }
+        reaction = new ReactionModel({
+            _id: new ObjectId(),
+            parentId: postId,
+            userId,
+            userLogin: user.login,
+            myStatus: ReactionStatusEnum,    // TODO: be reactionStatus
+            createdAt: new Date().toISOString(),
+        });
+    }
+
+    // Обновляем статус реакции в соответствии с новым действием
+    switch (action) {
+        case "Like":
+            reaction.myStatus = ReactionStatusEnum.Like;
+            break;
+        case "Dislike":
+            reaction.myStatus = ReactionStatusEnum.Dislike;
+            break;
+        case "None":
+            reaction.myStatus = ReactionStatusEnum.None;
+            break;
+        default:
+            console.error("Invalid action:", action);
+            return null;
+    }
+
+    await reaction.save();
+    console.log('Reaction updated: ============================================');
+
+    // Пересчитываем количество лайков и дизлайков
+    await this.recalculateLikesCount(reaction.myStatus, post.extendedLikesInfo.myStatus);
+
+    await this.updatePostLikesInfo(post);
+    console.log('updated post', post);
+    return post;
+}
+
 
   async updatePostLikesInfo(post: PostsViewModel) {
     await this.postsRepository.updatePostLikesInfo(post);
@@ -143,6 +193,29 @@ export class PostsService {
     if (!post) throw new Error("Comment not found");
     return this.reactionsService.updateReactionByParentId(postId, userId, userLogin, likeStatus);
   }
+
+  async recalculateLikesCount(
+    updateLikeStatus: ReactionStatusEnum, 
+    previousLikeType: ReactionStatusEnum = ReactionStatusEnum.None) {
+    const that = this as unknown as PostsMongoDb;
+    
+    if (!that.extendedLikesInfo) {
+      // Если extendedLikesInfo не определено, создайте его
+      that.extendedLikesInfo = {
+          likesCount: 0,
+          dislikesCount: 0,
+          //myStatus: ReactionStatusEnum.None,
+          newestLikes: [],
+      };
+  } else {
+    that.extendedLikesInfo = {...that.extendedLikesInfo}
+  }
+    if (previousLikeType === updateLikeStatus) return;
+
+    //уменьшаем количество лайков или дизлайков
+    if (previousLikeType === ReactionStatusEnum.Like) that.extendedLikesInfo.likesCount--;
+    if (previousLikeType === ReactionStatusEnum.Dislike) that.extendedLikesInfo.dislikesCount--;
+}
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {
     return await this.postsRepository.deletePost(id);
