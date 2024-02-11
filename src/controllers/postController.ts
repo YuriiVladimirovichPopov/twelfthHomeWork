@@ -14,7 +14,7 @@ import {
   PaginatedType,
 } from "../routers/helpers/pagination";
 import { httpStatuses } from "../routers/helpers/send-status";
-import { PostsMongoDb, RequestWithBody, RequestWithParams, UsersMongoDbType } from "../types";
+import { RequestWithParams, UsersMongoDbType } from "../types";
 import {
   commentsRepository,
   queryUserRepository,
@@ -93,8 +93,12 @@ export class PostController {
     const pagination = getPaginationFromQuery(
       req.query as unknown as PaginatedType, // TODO bad solution
     );
+    //console.log('++++++++++++++req.body.user++++++++++', req.body.user)
+    //const user = req.body.user as UsersMongoDbType | null
     const allPosts: Paginated<PostsViewModel> =
-      await this.queryPostRepository.findAllPosts(pagination, req.body.user?.id);
+      await this.queryPostRepository.findAllPosts(
+        pagination, 
+        req.body.user?._id.toString());
     if (!allPosts) {
       return res.status(httpStatuses.NOT_FOUND_404);
     }
@@ -110,7 +114,7 @@ export class PostController {
     );
 
     if (findBlogById) {
-      const data: PostsViewModel = req.body;   //TODO:тут переделал из инпут во вью модель
+      const data: PostsViewModel = req.body;  
       
       const newPost: PostsViewModel | null = 
       await this.postsRepository.createdPostForSpecificBlog(data)          // TODO: исходящую модель поменять? по сваггеру?
@@ -123,10 +127,10 @@ export class PostController {
   }
 
   async getPostById(req: Request, res: Response) {
-    console.log('USER: GET', req.body.user)
+    //console.log('USER: GET', req.body.user)
     const foundPost = await this.postsService.findPostById(
       req.params.id,
-      req.body.user?.id);
+      req.body.user?._id.toString());
     if (!foundPost) {
       res.sendStatus(httpStatuses.NOT_FOUND_404);
     } else {
@@ -150,17 +154,14 @@ export class PostController {
     }
   }
 
-
   async updateLikesDislikesForPost(req: Request, res: Response) {  
     try {
-      console.log('updateLikesDislikes!!!   ', req.body, );  
-      console.log('userId!!!   ', req.body.userId);
-      console.log('likeStatus!!!   ', req.body.likeStatus);
+      //console.log('updateLikesDislikes!!!   ', req.body, );  
+      //console.log('userId!!!   ', req.body.userId);
+      //console.log('likeStatus!!!   ', req.body.likeStatus);
       const postId = req.params.postId;
-      const userId = req.body.userId!;
-      const userLogin = req.body.userLogin;    // TODO добавил
-      const reactionStatus = req.body.reactionStatus;  // TODO добавил
-      const likeStatus = req.body.likeStatus;   //const { likeStatus } = req.body; 
+      const userId = req.body.userId!;//
+      const likeStatus = req.body.likeStatus;    
 
       // Проверяем наличие поля likeStatus в теле запроса
       if (likeStatus !== ReactionStatusEnum.Like 
@@ -174,10 +175,9 @@ export class PostController {
       const updatedPost = await this.postsService.updateLikesDislikesForPost(
         postId,
         userId,
-        likeStatus,    //TODO likeStatus -> myStatus
+        likeStatus,    
       );
      
-
       if (!updatedPost) {
         return res
           .status(httpStatuses.NOT_FOUND_404)

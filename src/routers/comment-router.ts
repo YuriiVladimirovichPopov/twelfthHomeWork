@@ -10,14 +10,13 @@ export const commentsRouter = Router({});
 
 commentsRouter.get(
   "/:commentId", 
-  guestAccessMiddleware, //Todo эта мидлваря не подходит
+  guestAccessMiddleware, 
   commentController.getCommentById.bind(commentController),
 );
 
 commentsRouter.put(
   "/:commentId",
   authMiddleware,
-  //userValidationMiddleware,
   createPostValidationForComment,
   commentController.changeCommentReaction.bind(commentController),
 );
@@ -25,16 +24,12 @@ commentsRouter.put(
   "/:commentId/like-status",
   authMiddleware,
   LikeStatusValidation,
-  //userValidationMiddleware,
-  //createPostValidationForComment,
   inputValidationErrors,
   commentController.updateLikesDislikes.bind(commentController),
-  //reactionController.updateReaction.bind(reactionController),
 );
 
 commentsRouter.delete(
   "/:commentId",
   authMiddleware,
-  //userValidationMiddleware,
   commentController.deleteCommentById.bind(commentController),
 );

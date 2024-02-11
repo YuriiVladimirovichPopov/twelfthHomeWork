@@ -41,7 +41,7 @@ export class BlogsController {
   }
 
   async getPostByBlogId(
-    req: Request<{ blogId: string }, {}, {}, {}>,
+    req: Request<{ blogId: string }, {}, {user: any}, {}>,   // TODO: change any on may be UserMDModel
     res: Response,
   ) {
     const blogWithPosts = await this.blogService.findBlogById(
@@ -51,10 +51,12 @@ export class BlogsController {
       return res.sendStatus(httpStatuses.NOT_FOUND_404);
     }
     const pagination = parsePaginatedType(req.query);
+    console.log("req.body", req.body);
     const foundBlogWithAllPosts: Paginated<PostsViewModel> =
       await this.queryPostRepository.findAllPostsByBlogId(
         req.params.blogId,
         pagination,
+        req.body.user.id.toString()
       );
 
     return res.status(httpStatuses.OK_200).send(foundBlogWithAllPosts);

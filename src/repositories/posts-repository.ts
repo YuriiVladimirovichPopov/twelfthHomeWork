@@ -46,7 +46,7 @@ export class PostsRepository {
       }
     }
   }
-    //TODO: переписать этот метод, сделать подобным async createComment
+  
   async createdPostForSpecificBlog1(newPost: PostsViewModel ): Promise<PostsViewModel | null> {
     const blog = await this.queryBlogsRepository.findBlogById(newPost.blogId);
     if (!blog) {
@@ -64,14 +64,13 @@ export class PostsRepository {
       extendedLikesInfo: {
         likesCount: newPost.extendedLikesInfo?.likesCount || 0,
         dislikesCount: newPost.extendedLikesInfo?.dislikesCount || 0,
-        newestLikes: newPost.extendedLikesInfo?.newestLikes || [],   // TODO: добавил невестЛайкс
+        newestLikes: newPost.extendedLikesInfo?.newestLikes || [],   
       },
     };
  
     try {
       const createdPost = await PostModel.create(createPostForBlog);
       const reaction: ExtendedReactionInfoViewModelForPost = await ExtendedReactionForPostModel.create({ 
-        // TODO: тут не нравится, скорей всего нужно обращаться к reactionModel и перемапливать newestLikes
         postId: createdPost._id, 
         likesCount: createPostForBlog.extendedLikesInfo.likesCount,
         dislikesCount: createPostForBlog.extendedLikesInfo.dislikesCount,
@@ -158,7 +157,7 @@ export class PostsRepository {
       .sort({ createdAt: -1 }) // Сортируем по убыванию времени добавления
       .limit(3)
       .exec();
-  console.log('newestLikes:              ' + newestLikes)
+  //console.log('newestLikes:              ' + newestLikes)
     // Преобразуем объекты из newestLikes в ожидаемый формат
     const formattedNewestLikes = newestLikes.map(like => ({
       addedAt: like.createdAt,
@@ -173,12 +172,12 @@ export class PostsRepository {
       myStatus: post.extendedLikesInfo.myStatus,
       newestLikes: formattedNewestLikes
     };
-    console.log("Post likes info updated++++: ", updatedExtendedReaction);
+    //console.log("Post likes info updated++++: ", updatedExtendedReaction);
     // Обновляем поле extendedLikesInfo в документе PostModel
     const blabla = await PostModel.findByIdAndUpdate(post.id.toString(), {
       'extendedLikesInfo': updatedExtendedReaction
     })
-    console.log("blabla+++++++++++++++", JSON.stringify(blabla) )
+    //console.log("blabla+++++++++++++++", JSON.stringify(blabla) )
 }
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {

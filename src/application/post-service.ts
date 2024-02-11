@@ -43,69 +43,7 @@ export class PostsService {
     return await this.postsRepository.updatePost(id, { ...data });
   }
 
-  /* async updateLikesDislikesForPost1(
-    postId: string,
-    userId: string,
-    userLogin: string,     // TODO добавил
-    reactionStatus: ReactionStatusEnum,     // TODO добавил
-    action: "None" | "Like" | "Dislike" 
-    ) {
-      
-    const post = await this.queryPostRepository.findPostById(postId, userId);
-
-    if (!post) {
-      return null;
-    }
   
-    let reaction = await this.reactionsRepository.findByParentIdAndUserId(postId, userId, userLogin, reactionStatus);  
-     // TODO добавил  userLogin  reactionStatus 
-    if (!reaction) {
-      const user = await UserModel.findOne({_id: new ObjectId(userId)})
-      if (!user) {
-        console.error("User not found");
-        return null;
-      }
-      reaction = new ReactionModel({
-        _id: new ObjectId(),
-        parentId: postId, 
-        userId,
-        userLogin: user.login,    
-        myStatus: reactionStatus, // TODO: be ReactionStatusEnam.None 
-        createdAt: new Date().toISOString(),    
-      });
-    } else {
-      // Если реакция уже существует, проверяем, является ли действие "Like" или "Dislike"
-      // Если действие совпадает с текущим статусом реакции, то меняем действие на "None"
-      if (action === "Like" && reaction.myStatus === ReactionStatusEnum.Like) {
-          action = "None";
-      } else if (action === "Dislike" && reaction.myStatus === ReactionStatusEnum.Dislike) {
-          action = "None";
-      }
-  }
-  // Обновляем статус реакции в соответствии с новым действием
-  switch (action) {
-      case "Like":
-          reaction.myStatus = ReactionStatusEnum.Like;
-          break;
-      case "Dislike":
-          reaction.myStatus = ReactionStatusEnum.Dislike;
-          break;
-      case "None":
-          reaction.myStatus = ReactionStatusEnum.None;
-          break;
-      default:
-          console.error("Invalid action:", action);
-          return null;
-  }
-
-    await reaction.save();
-    console.log('Reaction updated: ============================================');
-  
-    await this.updatePostLikesInfo(post);
-    console.log('updated post', post);
-    return post;
-  }
- */
   async updateLikesDislikesForPost(
     postId: string,
     userId: string,
@@ -152,13 +90,13 @@ export class PostsService {
     }
 
     await reaction.save();
-    console.log('Reaction updated: ============================================');
+    //console.log('Reaction updated: ============================================');
 
     // Пересчитываем количество лайков и дизлайков
     await this.recalculateLikesCount(reaction.myStatus, post.extendedLikesInfo.myStatus);
 
     await this.updatePostLikesInfo(post);
-    console.log('updated post', post);
+    //console.log('updated post', post);
     return post;
 }
 
@@ -179,7 +117,7 @@ export class PostsService {
       },
       { $match: { _id: new ObjectId(userId) } },
     ]);
-    console.log(this.countUserReactions,'countUserReactions')
+    //console.log(this.countUserReactions,'countUserReactions')
     return reactions.length > 0 ? reactions[0] : { likes: 0, dislikes: 0 };
   }
 
@@ -188,10 +126,10 @@ export class PostsService {
     userId: string, 
     userLogin: string, 
     likeStatus: ReactionStatusEnum) {
-        console.log(this.changeReactionForPost,'changeReactionForComment') 
+        //console.log(this.changeReactionForPost,'changeReactionForComment') 
     const post = await this.queryPostRepository.findPostById(postId, userId);
     if (!post) throw new Error("Comment not found");
-    return this.reactionsService.updateReactionByParentId(postId, userId, userLogin, likeStatus);
+    return this.reactionsService.updateReactionByParentId(postId, userId, likeStatus);
   }
 
   async recalculateLikesCount(

@@ -20,19 +20,7 @@ interface ReactionData {
 export class ReactionsRepository {
   constructor() {}
 
-  async findByParentIdAndUserId(
-    parentId: string,
-    userId: string,
-    userLogin: string,
-    reactionStatus: ReactionStatusEnum,
-  ) {
-    return await ReactionModel.findOne({
-      parentId,
-      userId,
-      //userLogin,
-      //reactionStatus,
-    });
-  }
+  
 
   async findByParentAndUserIds(  //TODO: c разобраться
     parentId: string,

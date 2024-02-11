@@ -9,6 +9,7 @@ import {
 } from "../middlewares/validations/blogs.validation";
 import { createPostValidationForBlogRouter } from "../middlewares/validations/posts.validation";
 import { blogsController } from "../composition-root";
+import { guestAccessMiddleware } from "../middlewares/validations/guests.validation";
 
 export const blogsRouter = Router({});
 
@@ -22,6 +23,7 @@ blogsRouter.post(
 
 blogsRouter.get(
   "/:blogId/posts",
+  guestAccessMiddleware,
   blogsController.getPostByBlogId.bind(blogsController),
 );
 

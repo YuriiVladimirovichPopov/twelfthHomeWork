@@ -21,11 +21,9 @@ export class ReactionController {
 
       // Проверяем, существует ли уже такая реакция
       const existingReaction =
-        await this.reactionsRepository.findByParentIdAndUserId(
+        await this.reactionsRepository.findByParentAndUserIds(
           parentId,
           userId,
-          userLogin,
-          reactionType,
         );
       if (existingReaction) {
         // Если реакция уже существует, возвращаем ошибку
@@ -52,13 +50,11 @@ export class ReactionController {
   async updateReaction(req: Request, res: Response) {
     try {
       const { parentId, userId, reactionType } = req.body; // Добавляем userId в запрос
-      const userLogin = req.user!.login; // Предполагаем, что логин пользователя доступен
 
       const updatedReaction =
         await this.reactionsService.updateReactionByParentId(
           parentId,
           userId,
-          userLogin,
           reactionType, // TODO  по идее нигде не использую. нужно разобраться что за reactionType. может надо поменять на ReactionSchema
         );
       return res.status(httpStatuses.OK_200).send(updatedReaction);

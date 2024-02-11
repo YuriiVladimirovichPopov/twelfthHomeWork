@@ -23,10 +23,9 @@ export class JWTService {
   }
 
   async getUserIdByToken(token: string): Promise<string | null> {
-   // const result = jwt.verify(token, settings.accessTokenSecret1) as Payload;
     try {
       const result = jwt.verify(token, settings.accessTokenSecret1) as Payload; 
-      console.log('result: ' + JSON.stringify(result));
+      //console.log('result: ' + JSON.stringify(result));
       return result.userId;
     } catch (error) {
       return null;

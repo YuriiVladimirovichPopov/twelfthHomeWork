@@ -100,7 +100,7 @@ export class CommentsService {
 
     const comment = await this.commentsQueryRepository.findCommentById(commentId);
     if (!comment) throw new Error("Comment not found");
-    return this.reactionsService.updateReactionByParentId(commentId, userId, userLogin, likeStatus);
+    return this.reactionsService.updateReactionByParentId(commentId, userId, likeStatus);
   }
 }
 

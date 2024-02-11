@@ -110,7 +110,7 @@ export class CommentController {
       const likeStatus = req.body.likeStatus as ReactionStatusEnum;
   
       // Вызываем метод из CommentsService
-      const updatedReaction = await this.commentsService.changeReactionForComment(
+      await this.commentsService.changeReactionForComment(
         commentId,
         userId,
         userLogin,
@@ -126,7 +126,6 @@ export class CommentController {
     }
   }
   
-
   async deleteCommentById(
     req: Request<{ commentId: string }, {}, {}, {}, { user: string }>,
     res: Response,

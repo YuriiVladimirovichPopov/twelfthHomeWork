@@ -5,7 +5,6 @@ import {
 } from "../middlewares/input-validation-middleware";
 import { createUserValidation } from "../middlewares/validations/users.validation";
 import { userController } from "../composition-root";
-import { customRateLimit } from "../middlewares/rateLimit-middleware";
 
 export const usersRouter = Router({});
 
@@ -13,7 +12,6 @@ usersRouter.get("/", userController.getAllUsers.bind(userController));
 
 usersRouter.post(
   "/",
-  //customRateLimit,    // добавил
   authorizationValidation,
   ...createUserValidation,
   inputValidationErrors,

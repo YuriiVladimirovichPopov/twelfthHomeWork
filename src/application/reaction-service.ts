@@ -17,11 +17,10 @@ export class ReactionsService {
     reactionStatus: ReactionStatusEnum,
   ) {
     const existingReaction =
-      await this.reactionRepository.findByParentIdAndUserId(
+      await this.reactionRepository.findByParentAndUserIds(
         parentId,
         userId,
-        userLogin,
-        reactionStatus,
+       
       );
     if (existingReaction) {
       throw new Error(
@@ -44,14 +43,12 @@ export class ReactionsService {
   async updateReactionByParentId(
     parentId: string,
     userId: string,
-    userLogin: string,
     reactionStatus: ReactionStatusEnum,
   ) {
-    const reaction = await this.reactionRepository.findByParentIdAndUserId(
+    const reaction = await this.reactionRepository.findByParentAndUserIds(
       parentId,
       userId,
-      userLogin,
-      reactionStatus,
+     
     );
 
     if (!reaction) {
