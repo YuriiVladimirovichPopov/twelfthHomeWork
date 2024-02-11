@@ -36,7 +36,6 @@ export class QueryPostRepository {
     userId?: string
   ): Promise<Paginated<PostsViewModel>> {
     const filter = { blogId };
-    console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAA', userId)
     return this._findPostsByFilter(filter, pagination, userId);
   }
 
@@ -110,9 +109,8 @@ export class QueryPostRepository {
       myStatus = reaction ? reaction.myStatus : ReactionStatusEnum.None      
     }
     
-    const extendedReaction = await ExtendedReactionForPostModel.findOne({ postId: findPost._id.toString() }).lean();
-    //console.log('extendedReaction', extendedReaction)
-
+    await ExtendedReactionForPostModel.findOne({ postId: findPost._id.toString() }).lean();
+    
     const res = this._postMapper(findPost, 
       myStatus
       
@@ -120,7 +118,7 @@ export class QueryPostRepository {
     return res;
   }
 
-  async findAllCommentsforPostId(    //TODO: сюда тоже юзерАйди засунуть?
+  async findAllCommentsforPostId(    
     pagination: PaginatedType,
   ): Promise<Paginated<CommentsMongoDbType>> {
     const filter = {

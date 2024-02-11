@@ -88,13 +88,12 @@ export class PostController {
       );
     return res.status(httpStatuses.CREATED_201).send(comment);
   }
-  //в этот эндпоинт добавить рек.боди.юзер
+
   async getAllPosts(req: Request, res: Response<Paginated<PostsViewModel>>) {
     const pagination = getPaginationFromQuery(
       req.query as unknown as PaginatedType, // TODO bad solution
     );
-    //console.log('++++++++++++++req.body.user++++++++++', req.body.user)
-    //const user = req.body.user as UsersMongoDbType | null
+
     const allPosts: Paginated<PostsViewModel> =
       await this.queryPostRepository.findAllPosts(
         pagination, 
@@ -117,7 +116,7 @@ export class PostController {
       const data: PostsViewModel = req.body;  
       
       const newPost: PostsViewModel | null = 
-      await this.postsRepository.createdPostForSpecificBlog(data)          // TODO: исходящую модель поменять? по сваггеру?
+      await this.postsRepository.createdPostForSpecificBlog(data)          
 
       if (!newPost) {
         return res.sendStatus(httpStatuses.BAD_REQUEST_400);
@@ -127,7 +126,6 @@ export class PostController {
   }
 
   async getPostById(req: Request, res: Response) {
-    //console.log('USER: GET', req.body.user)
     const foundPost = await this.postsService.findPostById(
       req.params.id,
       req.body.user?._id.toString());
@@ -156,11 +154,8 @@ export class PostController {
 
   async updateLikesDislikesForPost(req: Request, res: Response) {  
     try {
-      //console.log('updateLikesDislikes!!!   ', req.body, );  
-      //console.log('userId!!!   ', req.body.userId);
-      //console.log('likeStatus!!!   ', req.body.likeStatus);
       const postId = req.params.postId;
-      const userId = req.body.userId!;//
+      const userId = req.body.userId!;
       const likeStatus = req.body.likeStatus;    
 
       // Проверяем наличие поля likeStatus в теле запроса

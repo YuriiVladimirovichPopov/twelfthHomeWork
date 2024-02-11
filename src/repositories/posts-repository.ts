@@ -157,7 +157,7 @@ export class PostsRepository {
       .sort({ createdAt: -1 }) // Сортируем по убыванию времени добавления
       .limit(3)
       .exec();
-  //console.log('newestLikes:              ' + newestLikes)
+ 
     // Преобразуем объекты из newestLikes в ожидаемый формат
     const formattedNewestLikes = newestLikes.map(like => ({
       addedAt: like.createdAt,
@@ -172,13 +172,12 @@ export class PostsRepository {
       myStatus: post.extendedLikesInfo.myStatus,
       newestLikes: formattedNewestLikes
     };
-    //console.log("Post likes info updated++++: ", updatedExtendedReaction);
+    
     // Обновляем поле extendedLikesInfo в документе PostModel
-    const blabla = await PostModel.findByIdAndUpdate(post.id.toString(), {
+    await PostModel.findByIdAndUpdate(post.id.toString(), {
       'extendedLikesInfo': updatedExtendedReaction
     })
-    //console.log("blabla+++++++++++++++", JSON.stringify(blabla) )
-}
+  }
 
   async deletePost(id: string): Promise<PostsViewModel | boolean> {
     const foundPostById = await PostModel.deleteOne({ _id: new ObjectId(id) });

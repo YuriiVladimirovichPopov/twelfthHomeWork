@@ -90,13 +90,11 @@ export class PostsService {
     }
 
     await reaction.save();
-    //console.log('Reaction updated: ============================================');
 
     // Пересчитываем количество лайков и дизлайков
     await this.recalculateLikesCount(reaction.myStatus, post.extendedLikesInfo.myStatus);
 
     await this.updatePostLikesInfo(post);
-    //console.log('updated post', post);
     return post;
 }
 
@@ -104,7 +102,8 @@ export class PostsService {
   async updatePostLikesInfo(post: PostsViewModel) {
     await this.postsRepository.updatePostLikesInfo(post);
   }
-
+  
+  //не используется
   async countUserReactions (userId: string): Promise<{ likes: number; dislikes: number }> {
     const reactions = await PostModel.aggregate([
       { $unwind: "$likesInfo" },
@@ -117,16 +116,14 @@ export class PostsService {
       },
       { $match: { _id: new ObjectId(userId) } },
     ]);
-    //console.log(this.countUserReactions,'countUserReactions')
     return reactions.length > 0 ? reactions[0] : { likes: 0, dislikes: 0 };
   }
 
+  //не используется
   async changeReactionForPost(
     postId: string, 
     userId: string, 
-    userLogin: string, 
     likeStatus: ReactionStatusEnum) {
-        //console.log(this.changeReactionForPost,'changeReactionForComment') 
     const post = await this.queryPostRepository.findPostById(postId, userId);
     if (!post) throw new Error("Comment not found");
     return this.reactionsService.updateReactionByParentId(postId, userId, likeStatus);
@@ -138,11 +135,9 @@ export class PostsService {
     const that = this as unknown as PostsMongoDb;
     
     if (!that.extendedLikesInfo) {
-      // Если extendedLikesInfo не определено, создайте его
       that.extendedLikesInfo = {
           likesCount: 0,
           dislikesCount: 0,
-          //myStatus: ReactionStatusEnum.None,
           newestLikes: [],
       };
   } else {
