@@ -17,8 +17,7 @@ export const loginOrEmailValid = {
   maxLength: 30,
 };
 
-export const AccountData = new mongoose.Schema<EmailConfirmationType>({
-});
+export const AccountData = new mongoose.Schema<EmailConfirmationType>({});
 
 export const UserSchema = new mongoose.Schema<UsersMongoDbType>({
   _id: { type: mongoose.Schema.Types.ObjectId, required: true },

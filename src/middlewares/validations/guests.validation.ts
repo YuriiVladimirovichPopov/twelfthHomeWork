@@ -9,28 +9,30 @@ export const guestAccessMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-try {
-  const { authorization }  = req.headers    
-  if(!authorization || !authorization.startsWith("Bearer ")) {
-    return next()
-  }
+  try {
+    const { authorization } = req.headers;
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return next();
+    }
 
-  const token = authorization.split(" ")[1]
+    const token = authorization.split(" ")[1];
 
-  const userId = await jwtService.getUserIdByToken(token)
-  
-  if (!userId) {
-    return next()
-  } 
+    const userId = await jwtService.getUserIdByToken(token);
 
-  const user: UsersMongoDbType | null = await UserModel.findOne({_id: new ObjectId(userId)})
+    if (!userId) {
+      return next();
+    }
 
-  if (user) {
-    req.body.user = user
-  }
-  
-  return next()
-  } catch ( error ) {
+    const user: UsersMongoDbType | null = await UserModel.findOne({
+      _id: new ObjectId(userId),
+    });
+
+    if (user) {
+      req.body.user = user;
+    }
+
+    return next();
+  } catch (error) {
     console.log("Error in guestAccessMiddleware", error);
   }
 };

@@ -2,11 +2,14 @@ import "reflect-metadata";
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { UserViewModel } from "./models/users/userViewModel";
-import { ExtendedReactionInfoViewModelForPost, ReactionInfoDBModel, ReactionInfoDBModelForPost } from "./models/reaction/reactionInfoViewModel";
+import {
+  ExtendedReactionInfoViewModelForPost,
+  ReactionInfoDBModel,
+  ReactionInfoDBModelForPost,
+} from "./models/reaction/reactionInfoViewModel";
 import { ReactionStatusEnum } from "./domain/schemas/reactionInfo.schema";
 import { injectable } from "inversify";
 import { PostsViewModel } from "./models/posts/postsViewModel";
-
 
 @injectable()
 export class BlogsMongoDbType {
@@ -40,32 +43,37 @@ export class PostsMongoDb {
     createdAt: string,
     extendedLikesInfo: ReactionInfoDBModelForPost,
   ) {
-    this._id = new ObjectId()
-    this.title = title
-    this.shortDescription = shortDescription
-    this.content = content
-    this.blogId = blogId
-    this.blogName = blogName || null
-    this.createdAt = createdAt
-    this.extendedLikesInfo = extendedLikesInfo
+    this._id = new ObjectId();
+    this.title = title;
+    this.shortDescription = shortDescription;
+    this.content = content;
+    this.blogId = blogId;
+    this.blogName = blogName || null;
+    this.createdAt = createdAt;
+    this.extendedLikesInfo = extendedLikesInfo;
   }
-      static getViewModel(post: PostsMongoDb, postReaction: ExtendedReactionInfoViewModelForPost): PostsViewModel {
-        return {
-          id: post._id.toString(),
-          title: post.title,
-          shortDescription: post.shortDescription,
-          content: post.content,
-          blogId: post.blogId,
-          blogName: post.blogName,
-          createdAt: post.createdAt,
-          extendedLikesInfo: {
-            likesCount: post.extendedLikesInfo.likesCount,
-            dislikesCount: post.extendedLikesInfo.dislikesCount,
-            myStatus:  postReaction? postReaction.myStatus : ReactionStatusEnum.None,
-            newestLikes: postReaction?.newestLikes
-          }
-        }
-      }
+  static getViewModel(
+    post: PostsMongoDb,
+    postReaction: ExtendedReactionInfoViewModelForPost,
+  ): PostsViewModel {
+    return {
+      id: post._id.toString(),
+      title: post.title,
+      shortDescription: post.shortDescription,
+      content: post.content,
+      blogId: post.blogId,
+      blogName: post.blogName,
+      createdAt: post.createdAt,
+      extendedLikesInfo: {
+        likesCount: post.extendedLikesInfo.likesCount,
+        dislikesCount: post.extendedLikesInfo.dislikesCount,
+        myStatus: postReaction
+          ? postReaction.myStatus
+          : ReactionStatusEnum.None,
+        newestLikes: postReaction?.newestLikes,
+      },
+    };
+  }
 }
 
 @injectable()
@@ -102,8 +110,8 @@ export class createPostDTOType {
 
 @injectable()
 export class CommentsMongoDbType {
-  public _id: ObjectId
-  
+  public _id: ObjectId;
+
   constructor(
     public postId: string,
     public parentId: string,
@@ -115,7 +123,7 @@ export class CommentsMongoDbType {
     public createdAt: string,
     public likesInfo: ReactionInfoDBModel,
   ) {
-    this._id = new ObjectId()
+    this._id = new ObjectId();
   }
 }
 

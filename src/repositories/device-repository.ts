@@ -3,7 +3,6 @@ import { DeviceMongoDbType } from "../types";
 import { DeviceModel } from "../domain/schemas/device.schema";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class DeviceRepository {
   async findDeviceByUser(deviceId: string): Promise<DeviceMongoDbType | null> {

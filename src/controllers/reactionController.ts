@@ -5,7 +5,6 @@ import { httpStatuses } from "../routers/helpers/send-status";
 import { ReactionsRepository } from "../repositories/reaction-repository";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class ReactionController {
   constructor(
@@ -21,10 +20,7 @@ export class ReactionController {
 
       // Проверяем, существует ли уже такая реакция
       const existingReaction =
-        await this.reactionsRepository.findByParentAndUserIds(
-          parentId,
-          userId,
-        );
+        await this.reactionsRepository.findByParentAndUserIds(parentId, userId);
       if (existingReaction) {
         // Если реакция уже существует, возвращаем ошибку
         return res
@@ -55,7 +51,7 @@ export class ReactionController {
         await this.reactionsService.updateReactionByParentId(
           parentId,
           userId,
-          reactionType, // TODO  по идее нигде не использую. нужно разобраться что за reactionType. может надо поменять на ReactionSchema
+          reactionType,
         );
       return res.status(httpStatuses.OK_200).send(updatedReaction);
     } catch (error) {

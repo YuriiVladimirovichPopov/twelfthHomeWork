@@ -1,38 +1,31 @@
 import { ReactionStatusEnum } from "../../domain/schemas/reactionInfo.schema";
 
-export type ReactionInfoViewModel = {   
+export type ReactionInfoViewModel = {
   likesCount: number;
   dislikesCount: number;
-  myStatus: ReactionStatusEnum; 
+  myStatus: ReactionStatusEnum;
 };
 
-export type ExtendedReactionInfoViewModelForPost = {   
+export type ExtendedReactionInfoViewModelForPost = {
   likesCount: number;
   dislikesCount: number;
-  myStatus: ReactionStatusEnum; 
+  myStatus: ReactionStatusEnum;
   newestLikes: NewestLikeDetailsViewModel[];
 };
-
 
 export type ReactionInfoDBModel = {
   likesCount: number;
   dislikesCount: number;
 };
 
-//добавил для постов
 export type ReactionInfoDBModelForPost = {
   likesCount: number;
   dislikesCount: number;
   newestLikes: NewestLikeDetailsViewModel[];
 };
-/* export type LikeStatusType = {
-  myStatus: ReactionStatusEnum,
-  userId: string,
-  createdAt: string
-} */
 
 export type NewestLikeDetailsViewModel = {
-  addedAt: string,
-  userId: string,
-  login: string | null
-}
+  addedAt: string;
+  userId: string;
+  login: string | null;
+};

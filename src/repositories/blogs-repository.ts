@@ -6,7 +6,6 @@ import { BlogViewModel } from "../models/blogs/blogsViewModel";
 import { BlogModel } from "../domain/schemas/blogs.schema";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class BlogsRepository {
   _blogMapper(blog: BlogsMongoDbType): BlogViewModel {

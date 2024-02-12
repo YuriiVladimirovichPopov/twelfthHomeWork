@@ -22,98 +22,50 @@ import { DeviceRepository } from "./repositories/device-repository";
 import { PostsRepository } from "./repositories/posts-repository";
 import { ReactionsRepository } from "./repositories/reaction-repository";
 import { UsersRepository } from "./repositories/users-repository";
-import { ReactionController } from './controllers/reactionController';
 
+export const container = new Container();
 
+//Repositories
+container.bind(QueryUserRepository).to(QueryUserRepository);
+container.bind(UsersRepository).to(UsersRepository);
+container.bind(BlogsRepository).to(BlogsRepository);
+container
+  .bind<QueryBlogsRepository>(QueryBlogsRepository)
+  .to(QueryBlogsRepository);
+container.bind(PostsRepository).to(PostsRepository);
+container.bind(QueryPostRepository).to(QueryPostRepository);
+container.bind(CommentsRepository).to(CommentsRepository);
+container.bind(CommentsQueryRepository).to(CommentsQueryRepository);
+container.bind(DeviceRepository).to(DeviceRepository);
+container.bind(ReactionsRepository).to(ReactionsRepository);
 
-export const blogsRepository = new BlogsRepository();
+//Services
+container.bind(AuthService).to(AuthService);
+container.bind(ReactionsService).to(ReactionsService);
+container.bind(BlogService).to(BlogService);
+container.bind(PostsService).to(PostsService);
+container.bind(CommentsService).to(CommentsService);
 
-export const commentsRepository = new CommentsRepository();
-export const commentsQueryRepository = new CommentsQueryRepository();
-export const queryBlogsRepository = new QueryBlogsRepository();
-export const postsRepository = new PostsRepository();
-export const queryPostRepository = new QueryPostRepository();
-export const usersRepository = new UsersRepository();
-export const queryUserRepository = new QueryUserRepository();
-export const deviceRepository = new DeviceRepository();
-export const reactionsRepository = new ReactionsRepository();
-export const authService = new AuthService(
-  usersRepository,
-  queryUserRepository,
-);
+// Controllers
+container.bind(AuthController).to(AuthController);
+container.bind(UserController).to(UserController);
+container.bind(SecurityController).to(SecurityController);
+container.bind(BlogsController).to(BlogsController);
+container.bind(CommentController).to(CommentController);
+container.bind(PostController).to(PostController);
+container.bind(TestController).to(TestController);
 
-export const reactionsService = new ReactionsService(
-  reactionsRepository
-)
-
-export const blogService = new BlogService(
-    blogsRepository,
-    queryBlogsRepository 
-);
-export const postsService = new PostsService(
-    queryPostRepository,
-    postsRepository,
-    reactionsRepository,
-    reactionsService,
-);
-
-export const commentsService = new CommentsService(
-  commentsQueryRepository,
-  reactionsService,
-  reactionsRepository
-)
-
-
-
-
-export const authController = new AuthController(
-  usersRepository,
-  authService,
-  queryUserRepository,
-  deviceRepository,
-);
-
-export const userController = new UserController(
-  usersRepository
-);
-
-export const securityController = new SecurityController(
-  queryUserRepository,
-  authService,
-  deviceRepository,
-);
-
-export const blogsController = new BlogsController(
-  blogService,
-  postsRepository,
-  queryPostRepository,
-);
-
-export const commentController = new CommentController(
-  commentsRepository,
-  commentsQueryRepository,
-  commentsService
-);
-
-export const postController = new PostController(
-  postsService,
-  queryBlogsRepository,
-  queryPostRepository,
-  commentsQueryRepository,
-  postsRepository
-);
-
-export const reactionController = new ReactionController(
-  reactionsService,
-  reactionsRepository
-)
-
-export const testController = new TestController(
-  blogsRepository,
-  postsRepository,
-  commentsRepository,
-  deviceRepository,
-  usersRepository,
-);
-
-
+export {
+  AuthController,
+  UserController,
+  SecurityController,
+  BlogsController,
+  CommentController,
+  PostController,
+  TestController,
+  AuthService,
+  DeviceRepository,
+  QueryBlogsRepository,
+  QueryUserRepository,
+  UsersRepository,
+};

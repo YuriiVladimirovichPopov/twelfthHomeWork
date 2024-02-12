@@ -10,11 +10,8 @@ import { randomUUID } from "crypto";
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { injectable } from "inversify";
 
-
-
 @injectable()
 export class UsersRepository {
-
   _userMapper(user: UsersMongoDbType) {
     return {
       id: user._id.toString(),
@@ -83,7 +80,7 @@ export class UsersRepository {
     });
     return user;
   }
-  //todo не понимать!!!!
+ 
   async createUser(newUser: UsersMongoDbType): Promise<UserCreateViewModel> {
     await UserModel.insertMany(newUser);
     return {

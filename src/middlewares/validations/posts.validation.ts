@@ -1,6 +1,9 @@
 import { body } from "express-validator";
 import { inputValidationErrors } from "../input-validation-middleware";
-import { queryBlogsRepository } from "../../composition-root";
+import { QueryBlogsRepository, container } from "../../composition-root";
+
+const queryBlogsRepository =
+  container.resolve<QueryBlogsRepository>(QueryBlogsRepository);
 
 const titleValidation = body("title")
   .isString()

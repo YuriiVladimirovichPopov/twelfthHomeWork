@@ -8,8 +8,7 @@ export const contentValid = {
   maxLength: 300,
 };
 
-
-export const CommentSchema = new mongoose.Schema<CommentsMongoDbType>({  
+export const CommentSchema = new mongoose.Schema<CommentsMongoDbType>({
   _id: { type: mongoose.Schema.Types.ObjectId, required: true },
   postId: { type: String, required: true },
   content: {

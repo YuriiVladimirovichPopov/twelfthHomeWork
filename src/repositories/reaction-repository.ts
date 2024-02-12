@@ -15,17 +15,11 @@ interface ReactionData {
   updatedAt: boolean;
 }
 
-
 @injectable()
 export class ReactionsRepository {
   constructor() {}
 
-  
-
-  async findByParentAndUserIds(  //TODO: c разобраться
-    parentId: string,
-    userId: string,
-  ) {
+  async findByParentAndUserIds(parentId: string, userId: string) {
     return await ReactionModel.findOne({
       parentId: parentId,
       userId: userId,
@@ -40,7 +34,10 @@ export class ReactionsRepository {
 
   async updateReactionByParentId(newReaction: ReactionData) {
     return await ReactionModel.updateOne(
-      { parentId: newReaction.parentId, userId: new ObjectId(newReaction.userId) },
+      {
+        parentId: newReaction.parentId,
+        userId: new ObjectId(newReaction.userId),
+      },
       { $set: newReaction },
       { new: true },
     );

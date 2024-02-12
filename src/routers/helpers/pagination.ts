@@ -67,18 +67,18 @@ export const getPaginationFromQuery = (
 
   if (
     query.pageNumber &&
-    !isNaN(parseInt(query.pageNumber.toString(), 10)) && // привел pageNumber к стринге тк ругались типы
-    parseInt(query.pageNumber.toString(), 10) > 0 // привел pageNumber к стринге тк ругались типы
+    !isNaN(parseInt(query.pageNumber.toString(), 10)) &&
+    parseInt(query.pageNumber.toString(), 10) > 0 
   ) {
-    defaultValues.pageNumber = parseInt(query.pageNumber.toString(), 10); // привел pageNumber к стринге тк ругались типы
+    defaultValues.pageNumber = parseInt(query.pageNumber.toString(), 10);
   }
 
   if (
     query.pageSize &&
-    !isNaN(parseInt(query.pageSize.toString(), 10)) && // привел pageNumber к стринге тк ругались типы
-    parseInt(query.pageSize.toString(), 10) > 0 // привел pageNumber к стринге тк ругались типы
+    !isNaN(parseInt(query.pageSize.toString(), 10)) && 
+    parseInt(query.pageSize.toString(), 10) > 0 
   ) {
-    defaultValues.pageSize = parseInt(query.pageSize.toString(), 10); // привел pageNumber к стринге тк ругались типы
+    defaultValues.pageSize = parseInt(query.pageSize.toString(), 10);
   }
 
   if (query.searchNameTerm) {

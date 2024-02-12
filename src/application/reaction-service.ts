@@ -5,7 +5,6 @@ import { ReactionModel } from "../domain/schemas/reactionInfo.schema";
 import { ReactionsRepository } from "../repositories/reaction-repository";
 import { ReactionMongoDb } from "../types";
 
-
 @injectable()
 export class ReactionsService {
   constructor(private reactionRepository: ReactionsRepository) {}
@@ -17,11 +16,7 @@ export class ReactionsService {
     reactionStatus: ReactionStatusEnum,
   ) {
     const existingReaction =
-      await this.reactionRepository.findByParentAndUserIds(
-        parentId,
-        userId,
-       
-      );
+      await this.reactionRepository.findByParentAndUserIds(parentId, userId);
     if (existingReaction) {
       throw new Error(
         "Reaction already exists. Use update method to change the reaction.",
@@ -48,7 +43,6 @@ export class ReactionsService {
     const reaction = await this.reactionRepository.findByParentAndUserIds(
       parentId,
       userId,
-     
     );
 
     if (!reaction) {
@@ -62,7 +56,7 @@ export class ReactionsService {
       myStatus: reactionStatus,
       createdAt: new Date(),
       updatedAt: true,
-      userId: reaction.userId.toString()
+      userId: reaction.userId.toString(),
     };
 
     await this.reactionRepository.updateReactionByParentId(updatedReactionData);

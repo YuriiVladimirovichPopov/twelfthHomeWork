@@ -13,18 +13,20 @@ export type Payload = {
 
 @injectable()
 export class JWTService {
-  
-
   createJWT(user: UsersMongoDbType) {
-    const token = jwt.sign({ userId: user._id.toString() }, settings.accessTokenSecret1, {
-      expiresIn: "1000m",
-    });
+    const token = jwt.sign(
+      { userId: user._id.toString() },
+      settings.accessTokenSecret1,
+      {
+        expiresIn: "10m",
+      },
+    );
     return token;
   }
 
   async getUserIdByToken(token: string): Promise<string | null> {
     try {
-      const result = jwt.verify(token, settings.accessTokenSecret1) as Payload; 
+      const result = jwt.verify(token, settings.accessTokenSecret1) as Payload;
       return result.userId;
     } catch (error) {
       return null;
@@ -35,7 +37,7 @@ export class JWTService {
     const refToken = jwt.sign(
       { userId, deviceId },
       settings.refreshTokenSecret2,
-      { expiresIn: "1000m" },
+      { expiresIn: "10m" },
     );
     return refToken;
   }

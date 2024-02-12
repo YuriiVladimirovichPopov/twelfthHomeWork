@@ -6,16 +6,12 @@ import { BlogViewModel } from "../models/blogs/blogsViewModel";
 import { getByIdParam } from "../models/getById";
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { QueryPostRepository } from "../query repozitory/queryPostsRepository";
-import {
-  Paginated,
-  parsePaginatedType,
-} from "../routers/helpers/pagination";
+import { Paginated, parsePaginatedType } from "../routers/helpers/pagination";
 import { httpStatuses } from "../routers/helpers/send-status";
 import { RequestWithBody, RequestWithParams } from "../types";
 import { injectable } from "inversify";
 import { PostsRepository } from "../repositories/posts-repository";
-import { ObjectId } from "bson";
-
+import { UserViewModel } from "../models/users/userViewModel";
 
 @injectable()
 export class BlogsController {
@@ -41,7 +37,7 @@ export class BlogsController {
   }
 
   async getPostByBlogId(
-    req: Request<{ blogId: string }, {}, {user: any}, {}>,   // TODO: change any on may be UserMDModel
+    req: Request<{ blogId: string }, {}, { user: UserViewModel }, {}>,
     res: Response,
   ) {
     const blogWithPosts = await this.blogService.findBlogById(
@@ -51,22 +47,29 @@ export class BlogsController {
       return res.sendStatus(httpStatuses.NOT_FOUND_404);
     }
     const pagination = parsePaginatedType(req.query);
-    console.log("req.body", req.body);
+
     const foundBlogWithAllPosts: Paginated<PostsViewModel> =
       await this.queryPostRepository.findAllPostsByBlogId(
         req.params.blogId,
         pagination,
-        req.body.user.id.toString()
+        req.body.user.id.toString(),
       );
 
     return res.status(httpStatuses.OK_200).send(foundBlogWithAllPosts);
   }
 
-
   async createPostForBlogById(req: Request, res: Response) {
     const blogId = req.params.blogId;
 
-    const { id, title, shortDescription, content, blogName, createdAt, extendedLikesInfo } = req.body;
+    const {
+      id,
+      title,
+      shortDescription,
+      content,
+      blogName,
+      createdAt,
+      extendedLikesInfo,
+    } = req.body;
 
     const newPostForBlogById: PostsViewModel | null =
       await this.postsRepository.createdPostForSpecificBlog({
@@ -74,12 +77,11 @@ export class BlogsController {
         title,
         shortDescription,
         content,
-        blogId, 
+        blogId,
         blogName,
         createdAt,
-        extendedLikesInfo
-      },
-      );
+        extendedLikesInfo,
+      });
 
     if (newPostForBlogById) {
       return res.status(httpStatuses.CREATED_201).send(newPostForBlogById);

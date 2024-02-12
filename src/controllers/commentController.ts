@@ -9,21 +9,20 @@ import { ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { injectable } from "inversify";
 import { UsersMongoDbType } from "../types";
 
-
 @injectable()
 export class CommentController {
   constructor(
     private commentsRepository: CommentsRepository,
     private commentsQueryRepository: CommentsQueryRepository,
-    private commentsService: CommentsService
+    private commentsService: CommentsService,
   ) {}
 
   async getCommentById(req: Request, res: Response) {
-    const user = req.body.user as UsersMongoDbType | null
+    const user = req.body.user as UsersMongoDbType | null;
 
     const foundComment = await this.commentsQueryRepository.findCommentById(
       req.params.commentId,
-      user?._id?.toString()
+      user?._id?.toString(),
     );
     if (foundComment) {
       return res.status(httpStatuses.OK_200).send(foundComment);
@@ -65,7 +64,7 @@ export class CommentController {
         await this.commentsQueryRepository.findCommentsByParentId(
           parentId,
           pagination,
-          userId 
+          userId,
         );
       return res.status(httpStatuses.OK_200).send(paginatedComments);
     } catch (error) {
@@ -95,7 +94,7 @@ export class CommentController {
         return res.sendStatus(httpStatuses.NO_CONTENT_204);
       }
     } catch (error) {
-      console.error("Ошибка при обновлении реакций:", error)
+      console.error("Ошибка при обновлении реакций:", error);
       return res
         .status(httpStatuses.INTERNAL_SERVER_ERROR_500)
         .send({ message: "Сервер на кофе-брейке!" });
@@ -105,18 +104,18 @@ export class CommentController {
   async changeCommentReaction(req: Request, res: Response) {
     try {
       const commentId = req.params.commentId;
-      const userId = req.user!.id; 
-      const userLogin = req.user!.login; 
+      const userId = req.user!.id;
+      const userLogin = req.user!.login;
       const likeStatus = req.body.likeStatus as ReactionStatusEnum;
-  
+
       // Вызываем метод из CommentsService
       await this.commentsService.changeReactionForComment(
         commentId,
         userId,
         userLogin,
-        likeStatus
+        likeStatus,
       );
-        
+
       return res.sendStatus(httpStatuses.NO_CONTENT_204);
     } catch (error) {
       console.error(error);
@@ -125,7 +124,7 @@ export class CommentController {
         .send({ message: "Сервер на кофе-брейке!" });
     }
   }
-  
+
   async deleteCommentById(
     req: Request<{ commentId: string }, {}, {}, {}, { user: string }>,
     res: Response,

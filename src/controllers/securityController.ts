@@ -6,7 +6,6 @@ import { DeviceRepository } from "../repositories/device-repository";
 import { httpStatuses } from "../routers/helpers/send-status";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class SecurityController {
   constructor(
@@ -16,7 +15,7 @@ export class SecurityController {
   ) {}
 
   async devices(req: Request, res: Response) {
-    const refreshToken = req.cookies.refreshToken; // todo унести в мидлвар
+    const refreshToken = req.cookies.refreshToken; 
     if (!refreshToken) {
       return res
         .status(httpStatuses.UNAUTHORIZED_401)
@@ -99,7 +98,7 @@ export class SecurityController {
         .send({ message: "Device's ID is not valid" });
     }
 
-    await this.deviceRepository.deleteDeviceById(user._id.toString(), deviceId); // _id привел к туСтринг. ТС ругался
+    await this.deviceRepository.deleteDeviceById(user._id.toString(), deviceId); 
     return res
       .status(httpStatuses.NO_CONTENT_204)
       .send({ message: "Device's ID deleted " });

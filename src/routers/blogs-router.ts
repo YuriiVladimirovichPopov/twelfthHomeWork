@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Router } from "express";
 import {
   authorizationValidation,
@@ -8,8 +9,10 @@ import {
   updateBlogValidation,
 } from "../middlewares/validations/blogs.validation";
 import { createPostValidationForBlogRouter } from "../middlewares/validations/posts.validation";
-import { blogsController } from "../composition-root";
+import { BlogsController, container } from "../composition-root";
 import { guestAccessMiddleware } from "../middlewares/validations/guests.validation";
+
+const blogsController = container.resolve<BlogsController>(BlogsController);
 
 export const blogsRouter = Router({});
 

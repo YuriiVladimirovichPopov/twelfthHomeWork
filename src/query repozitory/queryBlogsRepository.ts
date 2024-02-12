@@ -8,7 +8,6 @@ import { BlogModel } from "../domain/schemas/blogs.schema";
 import { isValidObjectId } from "mongoose";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class QueryBlogsRepository {
   _blogMapper(blog: BlogsMongoDbType): BlogViewModel {

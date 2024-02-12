@@ -5,9 +5,7 @@ import { UserModel } from "../domain/schemas/users.schema";
 import mongoose from "mongoose";
 import { injectable } from "inversify";
 
-
 const filter: mongoose.FilterQuery<UsersMongoDbType> = {};
-
 
 @injectable()
 export class QueryUserRepository {

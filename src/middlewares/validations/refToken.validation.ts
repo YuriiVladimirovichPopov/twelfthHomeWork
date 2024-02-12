@@ -1,17 +1,25 @@
+import "reflect-metadata";
+
 import { NextFunction, Request, Response } from "express";
 import { httpStatuses } from "../../routers/helpers/send-status";
 import { jwtService } from "../../application/jwt-service";
 import {
-  authService,
-  deviceRepository,
-  queryUserRepository,
+  AuthService,
+  container,
+  DeviceRepository,
+  QueryUserRepository,
 } from "../../composition-root";
 
-export async function refTokenMiddleware(
+const authService = container.resolve<AuthService>(AuthService);
+const deviceRepository = container.resolve<DeviceRepository>(DeviceRepository);
+const queryUserRepository =
+  container.resolve<QueryUserRepository>(QueryUserRepository);
+
+export const refTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) {
+) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken)
@@ -46,7 +54,7 @@ export async function refTokenMiddleware(
     req.deviceId = device.deviceId;
     next();
   } catch (err) {
-    console.log("как - то, что - то не то е! "+ err);
+    console.log("как - то, что - то не то е! " + err);
     return res.sendStatus(httpStatuses.INTERNAL_SERVER_ERROR_500);
   }
-}
+};

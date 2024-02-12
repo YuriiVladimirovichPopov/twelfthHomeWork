@@ -8,7 +8,6 @@ import { UsersRepository } from "../repositories/users-repository";
 import { httpStatuses } from "../routers/helpers/send-status";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class TestController {
   constructor(

@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { securityController } from "../composition-root";
+import { container, SecurityController } from "../composition-root";
+
+const securityController =
+  container.resolve<SecurityController>(SecurityController);
 
 export const securityRouter = Router({});
 

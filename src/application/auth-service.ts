@@ -15,15 +15,13 @@ import { QueryUserRepository } from "../query repozitory/queryUserRepository";
 import { Request } from "express";
 import { injectable } from "inversify";
 
-
-
 @injectable()
 export class AuthService {
   constructor(
     protected usersRepository: UsersRepository,
     protected queryUserRepository: QueryUserRepository,
   ) {}
-  //todo надо разобраться
+  
   async createUser(
     login: string,
     email: string,
@@ -73,7 +71,7 @@ export class AuthService {
 
   async checkAndFindUserByToken(req: Request, token: string) {
     try {
-      const result: any = Jwt.verify(token, settings.JWT_SECRET); // todo: any don't like. Need change
+      const result: any = Jwt.verify(token, settings.JWT_SECRET); // TODO: any don't like. Need change
       const user = await this.queryUserRepository.findUserById(result.userId);
       return user;
     } catch (error) {
@@ -117,16 +115,14 @@ export class AuthService {
     deviceId: string,
   ): Promise<{ accessToken: string; newRefreshToken: string }> {
     try {
-      const accessToken = Jwt.sign(
-        { userId },
-        settings.accessTokenSecret1,
-        { expiresIn: "1000minutes" }, // исправил на 10 мин
-      );
+      const accessToken = Jwt.sign({ userId }, settings.accessTokenSecret1, {
+        expiresIn: "10minutes",
+      });
 
       const newRefreshToken = Jwt.sign(
         { userId, deviceId },
         settings.refreshTokenSecret2,
-        { expiresIn: "1000minutes" }, // исправил на 10 мин
+        { expiresIn: "10minutes" },
       );
 
       return { accessToken, newRefreshToken };

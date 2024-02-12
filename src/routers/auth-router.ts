@@ -9,7 +9,9 @@ import { createUserValidation } from "../middlewares/validations/users.validatio
 import { customRateLimit } from "../middlewares/rateLimit-middleware";
 import { forCreateNewPasswordValidation } from "../middlewares/validations/auth.recoveryPass.validation";
 import { refTokenMiddleware } from "../middlewares/validations/refToken.validation";
-import { authController } from "../composition-root";
+import { AuthController, container } from "../composition-root";
+
+const authController = container.resolve<AuthController>(AuthController);
 
 export const authRouter = Router({});
 

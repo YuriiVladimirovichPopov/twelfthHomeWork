@@ -4,7 +4,9 @@ import {
   inputValidationErrors,
 } from "../middlewares/input-validation-middleware";
 import { createUserValidation } from "../middlewares/validations/users.validation";
-import { userController } from "../composition-root";
+import { UserController, container } from "../composition-root";
+
+const userController = container.resolve<UserController>(UserController);
 
 export const usersRouter = Router({});
 

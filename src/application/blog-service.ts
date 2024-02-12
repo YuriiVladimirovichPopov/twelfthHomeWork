@@ -9,16 +9,12 @@ import { PaginatedType } from "../routers/helpers/pagination";
 import { QueryBlogsRepository } from "../query repozitory/queryBlogsRepository";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class BlogService {
-  //todo change. add to constructor
   constructor(
     protected blogsRepository: BlogsRepository,
-    protected queryBlogsRepository: QueryBlogsRepository
-    ) {
-    
-  }
+    protected queryBlogsRepository: QueryBlogsRepository,
+  ) {}
   async findAllBlogs(
     pagination: PaginatedType,
   ): Promise<Paginated<BlogViewModel>> {

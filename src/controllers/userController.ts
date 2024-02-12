@@ -10,14 +10,14 @@ import {
 } from "../routers/helpers/pagination";
 import { httpStatuses } from "../routers/helpers/send-status";
 import { RequestWithParams } from "../types";
-import { authService } from "../composition-root";
+import { AuthService } from "../composition-root";
 import { injectable } from "inversify";
-
 
 @injectable()
 export class UserController {
   constructor(
     private usersRepository: UsersRepository,
+    private authService: AuthService,
   ) {}
 
   async getAllUsers(req: Request, res: Response) {
@@ -31,7 +31,7 @@ export class UserController {
   }
 
   async createNewUser(req: Request, res: Response) {
-    const newUser = await authService.createUser(
+    const newUser = await this.authService.createUser(
       req.body.login,
       req.body.email,
       req.body.password,

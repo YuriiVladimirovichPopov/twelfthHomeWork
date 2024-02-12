@@ -12,7 +12,7 @@ export async function customRateLimit(
   res: Response,
   next: NextFunction,
 ) {
-  const IP = req.ip || ""; 
+  const IP = req.ip || "";
   const URL = req.url;
   const date = new Date();
 

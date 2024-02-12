@@ -15,7 +15,6 @@ import { httpStatuses } from "../routers/helpers/send-status";
 import { DeviceMongoDbType, UsersMongoDbType, RequestWithBody } from "../types";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class AuthController {
   constructor(
@@ -41,7 +40,7 @@ export class AuthController {
       const lastActiveDate = await jwtService.getLastActiveDate(refreshToken);
       const newDevice: DeviceMongoDbType = {
         _id: new ObjectId(),
-        ip: req.ip || "", //добавил " " т.к. ругался после обновления на undefined
+        ip: req.ip || "", 
         title: req.headers["user-agent"] || "title",
         lastActiveDate,
         deviceId,

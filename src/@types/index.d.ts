@@ -8,8 +8,6 @@ declare global {
       userId?: string;
       deviceId?: string;
       user?: UserViewModel | null | undefined;
-      //userLogin: string;
-      //user: UsersMongoDbType | null;
     }
   }
 }

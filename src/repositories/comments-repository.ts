@@ -6,10 +6,8 @@ import { ReactionStatusEnum } from "../domain/schemas/reactionInfo.schema";
 import { CommentViewModel } from "../models/comments/commentViewModel";
 import { injectable } from "inversify";
 
-
 @injectable()
 export class CommentsRepository {
-  
   async createComment(
     parentId: string,
     postId: string,
