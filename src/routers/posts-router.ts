@@ -12,15 +12,17 @@ import { createPostValidationForComment } from "../middlewares/validations/comme
 import { container, PostController } from "../composition-root";
 import { guestAccessMiddleware } from "../middlewares/validations/guests.validation";
 
-const postController = container.resolve<PostController>(PostController);
+
+
+const postController = container.resolve<PostController>(PostController)
 
 export const postsRouter = Router({});
 
-postsRouter.put(
+postsRouter.put(   
   "/:postId/like-status",
   authMiddleware,
-  postController.updateLikesDislikesForPost.bind(postController),
-);
+  postController.updateLikesDislikesForPost.bind(postController)
+)
 
 postsRouter.get(
   "/:postId/comments",
@@ -35,11 +37,9 @@ postsRouter.post(
   postController.createCommentsByPostId.bind(postController),
 );
 
-postsRouter.get(
-  "/",
-  guestAccessMiddleware,
-  postController.getAllPosts.bind(postController),
-);
+postsRouter.get("/", 
+guestAccessMiddleware,
+postController.getAllPosts.bind(postController));
 
 postsRouter.post(
   "/",
@@ -48,11 +48,9 @@ postsRouter.post(
   postController.createPostByBlogId.bind(postController),
 );
 
-postsRouter.get(
-  "/:id",
-  guestAccessMiddleware,
-  postController.getPostById.bind(postController),
-);
+postsRouter.get("/:id", 
+guestAccessMiddleware,
+postController.getPostById.bind(postController));
 
 postsRouter.put(
   "/:id",

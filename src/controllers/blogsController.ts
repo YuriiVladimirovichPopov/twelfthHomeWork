@@ -1,3 +1,4 @@
+import { parsePaginatedType } from './../routers/helpers/pagination';
 import "reflect-metadata";
 import { Response, Request } from "express";
 import { BlogService } from "../application/blog-service";
@@ -6,8 +7,8 @@ import { BlogViewModel } from "../models/blogs/blogsViewModel";
 import { getByIdParam } from "../models/getById";
 import { PostsViewModel } from "../models/posts/postsViewModel";
 import { QueryPostRepository } from "../query repozitory/queryPostsRepository";
-import { Paginated, parsePaginatedType } from "../routers/helpers/pagination";
-import { httpStatuses } from "../routers/helpers/send-status";
+import { Paginated } from './../routers/helpers/pagination';
+import { httpStatuses } from '../routers/helpers/send-status';
 import { RequestWithBody, RequestWithParams } from "../types";
 import { injectable } from "inversify";
 import { PostsRepository } from "../repositories/posts-repository";
